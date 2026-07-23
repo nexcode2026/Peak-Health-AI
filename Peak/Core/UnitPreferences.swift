@@ -19,7 +19,7 @@ enum UnitSystem: String, CaseIterable, Equatable, Identifiable {
     var detail: String {
         switch self {
         case .metric: "Kilograms, centimeters, kilometers and milliliters"
-        case .imperial: "Pounds, feet and inches, miles and cups"
+        case .imperial: "Pounds, feet and inches, miles and fluid ounces"
         }
     }
 
@@ -46,7 +46,7 @@ struct UnitFormatter: Equatable {
         case .metric:
             return "\(ml) ml"
         case .imperial:
-            return "\(formattedCups(ml)) \(cupUnit(ml))"
+            return "\(formattedFluidOunces(ml)) fl oz"
         }
     }
 
@@ -55,12 +55,12 @@ struct UnitFormatter: Equatable {
         case .metric:
             return "\(ml)"
         case .imperial:
-            return formattedCups(ml)
+            return formattedFluidOunces(ml)
         }
     }
 
     var waterUnitLabel: String {
-        system == .metric ? "ml" : "cups"
+        system == .metric ? "ml" : "fl oz"
     }
 
     func formatWaterGoal(_ ml: Int) -> String {
@@ -68,22 +68,18 @@ struct UnitFormatter: Equatable {
         case .metric:
             return "Goal \(ml) ml"
         case .imperial:
-            return "Goal \(formattedCups(ml)) \(cupUnit(ml))"
+            return "Goal \(formattedFluidOunces(ml)) fl oz"
         }
     }
 
-    /// US customary cup. Peak stores hydration in milliliters so changing the
+    /// US fluid ounces. Peak stores hydration in milliliters so changing the
     /// presentation unit never alters HealthKit or CloudKit values.
-    private func formattedCups(_ ml: Int) -> String {
-        let cups = Double(ml) / 236.588
-        if abs(cups.rounded() - cups) < 0.05 {
-            return String(format: "%.0f", cups)
+    private func formattedFluidOunces(_ ml: Int) -> String {
+        let ounces = Double(ml) / 29.5735
+        if abs(ounces.rounded() - ounces) < 0.05 {
+            return String(format: "%.0f", ounces)
         }
-        return String(format: "%.1f", cups)
-    }
-
-    private func cupUnit(_ ml: Int) -> String {
-        abs(Double(ml) / 236.588 - 1) < 0.05 ? "cup" : "cups"
+        return String(format: "%.1f", ounces)
     }
 
     // MARK: - Weight (stored as kg)

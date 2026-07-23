@@ -459,6 +459,7 @@ struct DashboardView: View {
                 sleepExpanded
                 strainExpanded
                 nutritionWaterExpanded
+                stressEnergyExpanded
             }
         }
     }
@@ -729,6 +730,24 @@ struct DashboardView: View {
                     )
                 }
                 .gridCellColumns(2)
+
+                TodayPillarCard(
+                    title: "Stress",
+                    value: "\(viewModel.stressLoad)",
+                    subtitle: viewModel.stressLabel,
+                    icon: "waveform.path.ecg",
+                    color: stressColor,
+                    progress: Double(viewModel.stressLoad) / 100
+                )
+
+                TodayPillarCard(
+                    title: "Energy",
+                    value: "\(viewModel.energyScore)",
+                    subtitle: viewModel.energyLabel,
+                    icon: "bolt.fill",
+                    color: energyColor,
+                    progress: Double(viewModel.energyScore) / 100
+                )
             }
         }
         .cardAppear(index: 1)
@@ -965,6 +984,90 @@ struct DashboardView: View {
             }
         }
         .cardAppear(index: 5)
+    }
+
+    private var stressEnergyExpanded: some View {
+        PeakCard {
+            VStack(alignment: .leading, spacing: PeakTheme.Spacing.md) {
+                sectionLabel("Stress & Energy", icon: "brain.head.profile.fill", color: PeakTheme.rose)
+
+                HStack(alignment: .top, spacing: PeakTheme.Spacing.md) {
+                    wellnessSignal(
+                        title: "Stress Load",
+                        value: viewModel.stressLoad,
+                        label: viewModel.stressLabel,
+                        detail: viewModel.stressDetail,
+                        icon: "waveform.path.ecg",
+                        color: stressColor,
+                        inverseProgress: true
+                    )
+                    wellnessSignal(
+                        title: "Available Energy",
+                        value: viewModel.energyScore,
+                        label: viewModel.energyLabel,
+                        detail: viewModel.energyDetail,
+                        icon: "bolt.fill",
+                        color: energyColor
+                    )
+                }
+
+                HStack(spacing: PeakTheme.Spacing.xs) {
+                    Label("\(Int(viewModel.recentRoutineConsistency * 100))% routine consistency", systemImage: "calendar.badge.checkmark")
+                    Spacer()
+                    Label("Wellness estimate", systemImage: "info.circle")
+                }
+                .font(PeakTheme.Typography.micro)
+                .foregroundStyle(PeakTheme.textSecondary)
+            }
+        }
+        .cardAppear(index: 6)
+    }
+
+    private func wellnessSignal(
+        title: String,
+        value: Int,
+        label: String,
+        detail: String,
+        icon: String,
+        color: Color,
+        inverseProgress: Bool = false
+    ) -> some View {
+        VStack(alignment: .leading, spacing: PeakTheme.Spacing.xs) {
+            MetricGauge(
+                progress: inverseProgress ? 1 - Double(value) / 100 : Double(value) / 100,
+                value: "\(value)",
+                label: label,
+                color: color,
+                size: 106
+            )
+            Label(title, systemImage: icon)
+                .font(PeakTheme.Typography.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(color)
+            Text(detail)
+                .font(PeakTheme.Typography.micro)
+                .foregroundStyle(PeakTheme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var stressColor: Color {
+        switch viewModel.stressLoad {
+        case ..<35: PeakTheme.mint
+        case 35..<60: PeakTheme.gold
+        case 60..<80: PeakTheme.coral
+        default: PeakTheme.rose
+        }
+    }
+
+    private var energyColor: Color {
+        switch viewModel.energyScore {
+        case ..<35: PeakTheme.lavender
+        case 35..<60: PeakTheme.sky
+        case 60..<80: PeakTheme.teal
+        default: PeakTheme.mint
+        }
     }
 
     private func nutritionColumn(title: String, value: String, goal: String, progress: Double, color: Color) -> some View {

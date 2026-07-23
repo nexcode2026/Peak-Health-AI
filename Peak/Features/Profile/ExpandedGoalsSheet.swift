@@ -39,7 +39,7 @@ struct ExpandedGoalsSheet: View {
 
                     goalSection(
                         title: "Nutrition & Hydration",
-                        subtitle: formatter.system == .imperial ? "Water is shown in US customary cups." : "Water is shown in milliliters.",
+                        subtitle: formatter.system == .imperial ? "Water is shown in US fluid ounces." : "Water is shown in milliliters.",
                         icon: "leaf.fill",
                         color: PeakTheme.gold
                     ) {

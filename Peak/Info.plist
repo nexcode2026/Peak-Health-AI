@@ -24,6 +24,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.healthcare-fitness</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Peak uses the camera when you choose to scan a food barcode or analyze a meal photo.</string>
 	<key>NSFaceIDUsageDescription</key>

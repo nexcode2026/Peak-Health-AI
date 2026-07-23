@@ -17,15 +17,15 @@ final class SubscriptionTierTests: XCTestCase {
         XCTAssertEqual(SubscriptionTier.pro.aiMessageLimit, 2000)
     }
 
-    func testImperialHydrationUsesUSCups() {
+    func testImperialHydrationUsesUSFluidOunces() {
         let formatter = UnitFormatter(system: .imperial)
 
-        XCTAssertEqual(formatter.waterUnitLabel, "cups")
-        XCTAssertEqual(formatter.formatWater(236), "1 cup")
-        XCTAssertEqual(formatter.formatWaterShort(2500), "10.6")
-        XCTAssertEqual(formatter.formatWaterGoal(2500), "Goal 10.6 cups")
+        XCTAssertEqual(formatter.waterUnitLabel, "fl oz")
+        XCTAssertEqual(formatter.formatWater(236), "8 fl oz")
+        XCTAssertEqual(formatter.formatWaterShort(2500), "84.5")
+        XCTAssertEqual(formatter.formatWaterGoal(2500), "Goal 84.5 fl oz")
         XCTAssertFalse(formatter.formatWater(2500).localizedCaseInsensitiveContains("ml"))
-        XCTAssertFalse(formatter.formatWater(2500).localizedCaseInsensitiveContains("oz"))
+        XCTAssertFalse(formatter.formatWater(2500).localizedCaseInsensitiveContains("cup"))
     }
 
     func testMetricHydrationRemainsMilliliters() {

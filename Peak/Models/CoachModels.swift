@@ -50,6 +50,25 @@ enum CoachRole: String, Codable {
     case system
 }
 
+enum CoachTone: String, CaseIterable, Identifiable, Codable, Sendable {
+    case supportive
+    case concise
+    case analytical
+    case motivating
+
+    var id: String { rawValue }
+    var title: String { rawValue.capitalized }
+
+    var instruction: String {
+        switch self {
+        case .supportive: "Be warm, calm, encouraging, and practical."
+        case .concise: "Be brief and direct. Prefer compact answers and clear next actions."
+        case .analytical: "Explain patterns, contributing signals, uncertainty, and tradeoffs."
+        case .motivating: "Use energetic, positive language and turn recommendations into achievable challenges."
+        }
+    }
+}
+
 // MARK: - AI Usage Tracking
 
 @Model

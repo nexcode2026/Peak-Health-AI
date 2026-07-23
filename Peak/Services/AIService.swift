@@ -47,6 +47,7 @@ struct MealAnalysisResult: Sendable {
 
 struct CoachContext: Sendable {
     var displayName: String = "User"
+    var selectedDate: String = "Today"
     var todayRecoveryScore: Int = 0
     var recoveryLabel: String = ""
     var sleepHours: Double = 0
@@ -60,6 +61,10 @@ struct CoachContext: Sendable {
     var wellnessStatus: String = "Normal"
     var cycleTrackingEnabled: Bool = false
     var cycleSummary: String = ""
+    var daySummary: String = ""
+    var recentDataSummary: String = ""
+    var memorySummary: String = ""
+    var coachTone: CoachTone = .supportive
 }
 
 struct CoachMessageDTO: Sendable {
@@ -106,7 +111,9 @@ final class AIService: AIServiceProtocol, @unchecked Sendable {
         try await checkUsageLimit(tier: tier, modelContext: modelContext)
 
         let contextBlock = buildContextBlock(context)
-        let fullSystem = systemPrompt + "\n\nUSER CONTEXT:\n" + contextBlock
+        let fullSystem = systemPrompt
+            + "\n\nCOACH STYLE:\n" + context.coachTone.instruction
+            + "\n\nUSER CONTEXT:\n" + contextBlock
 
         // Cloud coaching is explicit opt-in because the context can contain health data.
         if context.allowsOpenAI,
@@ -435,6 +442,7 @@ final class AIService: AIServiceProtocol, @unchecked Sendable {
     private func buildContextBlock(_ context: CoachContext) -> String {
         """
         Name: \(context.displayName)
+        Selected date: \(context.selectedDate)
         Recovery: \(context.todayRecoveryScore) (\(context.recoveryLabel))
         Sleep: \(context.sleepHours)h
         Hydration: \(Int(context.hydrationPercent * 100))%
@@ -445,6 +453,9 @@ final class AIService: AIServiceProtocol, @unchecked Sendable {
         Selected daily status: \(context.wellnessStatus)
         Cycle tracking enabled: \(context.cycleTrackingEnabled)
         Cycle context: \(context.cycleSummary.isEmpty ? "not supplied" : context.cycleSummary)
+        Selected-day detail: \(context.daySummary.isEmpty ? "not available" : context.daySummary)
+        Recent-day pattern summary: \(context.recentDataSummary.isEmpty ? "not available" : context.recentDataSummary)
+        User-approved conversation memory: \(context.memorySummary.isEmpty ? "off or not available" : context.memorySummary)
         """
     }
 

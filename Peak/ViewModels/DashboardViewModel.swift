@@ -47,6 +47,9 @@ final class DashboardViewModel {
     var dailyInsight: String = ""
     var isLoading = false
     var wellnessStatus: WellnessStatus = .normal
+    var loggedEnergyLevel: Int?
+    var loggedStressToday = false
+    var recentRoutineConsistency: Double = 0
 
     func load(date: Date = .now, modelContext: ModelContext, container: AppContainer) async {
         isLoading = true
@@ -81,6 +84,36 @@ final class DashboardViewModel {
         todayWorkouts = (try? modelContext.fetch(FetchDescriptor<WorkoutLog>(
             predicate: #Predicate { $0.date >= today && $0.date < tomorrow }
         )))?.count ?? 0
+
+        let todayMood = try? modelContext.fetch(FetchDescriptor<MoodReflection>(
+            predicate: #Predicate { $0.date >= today && $0.date < tomorrow },
+            sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
+        )).first
+        loggedEnergyLevel = todayMood?.energyLevel
+        loggedStressToday = todayMood?.tags.contains(where: {
+            $0.localizedCaseInsensitiveContains("stress") || $0.localizedCaseInsensitiveContains("restless")
+        }) ?? false
+
+        let routineStart = Calendar.current.date(byAdding: .day, value: -6, to: today) ?? today
+        let recentHydration = (try? modelContext.fetch(FetchDescriptor<HydrationLog>(
+            predicate: #Predicate { $0.date >= routineStart && $0.date < tomorrow }
+        ))) ?? []
+        let recentFood = (try? modelContext.fetch(FetchDescriptor<FoodLog>(
+            predicate: #Predicate { $0.date >= routineStart && $0.date < tomorrow }
+        ))) ?? []
+        let recentWorkouts = (try? modelContext.fetch(FetchDescriptor<WorkoutLog>(
+            predicate: #Predicate { $0.date >= routineStart && $0.date < tomorrow }
+        ))) ?? []
+        let recentMoods = (try? modelContext.fetch(FetchDescriptor<MoodReflection>(
+            predicate: #Predicate { $0.date >= routineStart && $0.date < tomorrow }
+        ))) ?? []
+        let routineDays = Set(
+            recentHydration.map { $0.date.startOfDay }
+                + recentFood.map { $0.date.startOfDay }
+                + recentWorkouts.map { $0.date.startOfDay }
+                + recentMoods.map { $0.date.startOfDay }
+        )
+        recentRoutineConsistency = min(1, Double(routineDays.count) / 7)
 
         habitsTotal = (try? modelContext.fetch(FetchDescriptor<HabitDefinition>(
             predicate: #Predicate { $0.isActive }
@@ -180,6 +213,74 @@ final class DashboardViewModel {
 
     var activeCaloriesDisplay: Int {
         Int(healthMetrics?.activeEnergyKcal ?? 0)
+    }
+
+    /// Estimated wellness load, not a medical stress measurement. Higher means
+    /// more recovery pressure from sleep, strain, fuel, hydration and routines.
+    var stressLoad: Int {
+        let recovery = Double(todayScore?.overallScore ?? 50)
+        let sleepDeficit = max(0, 1 - sleepProgress)
+        let hydrationDeficit = max(0, 1 - hydrationProgress)
+        let nutritionDeficit = max(0, 1 - max(calorieProgress, proteinProgress))
+        let strainPressure = max(0, Double(strainPercent - 65)) * 0.30
+        let energyPressure = loggedEnergyLevel.map { Double(max(0, 3 - $0)) * 6 } ?? 0
+        let taggedStress = loggedStressToday ? 14.0 : 0
+        let routineBuffer = recentRoutineConsistency * 10
+        let value = 48
+            + (50 - recovery) * 0.38
+            + sleepDeficit * 20
+            + hydrationDeficit * 14
+            + nutritionDeficit * 8
+            + strainPressure
+            + energyPressure
+            + taggedStress
+            - routineBuffer
+        return Int(min(100, max(0, value)).rounded())
+    }
+
+    var stressLabel: String {
+        switch stressLoad {
+        case ..<35: "Low load"
+        case 35..<60: "Balanced"
+        case 60..<80: "Elevated"
+        default: "High load"
+        }
+    }
+
+    var stressDetail: String {
+        if loggedStressToday { return "Your check-in and recovery inputs suggest extra load" }
+        if sleepProgress < 0.75 { return "Sleep is the strongest pressure signal today" }
+        if hydrationProgress < 0.5 { return "Hydration is adding to today’s load" }
+        return "Blends recovery, strain, fuel and 7-day routines"
+    }
+
+    var energyScore: Int {
+        let recovery = Double(todayScore?.overallScore ?? 50) / 100
+        let moodEnergy = loggedEnergyLevel.map { Double($0) / 5 } ?? 0.6
+        let value = recovery * 35
+            + sleepProgress * 20
+            + hydrationProgress * 15
+            + max(calorieProgress, proteinProgress) * 10
+            + recentRoutineConsistency * 10
+            + moodEnergy * 10
+        return Int(min(100, max(0, value)).rounded())
+    }
+
+    var energyLabel: String {
+        switch energyScore {
+        case ..<35: "Recharge"
+        case 35..<60: "Steady"
+        case 60..<80: "Ready"
+        default: "Peak energy"
+        }
+    }
+
+    var energyDetail: String {
+        if let loggedEnergyLevel {
+            return "Check-in \(loggedEnergyLevel)/5 · adjusted with live health data"
+        }
+        if hydrationProgress < 0.5 { return "Hydration can lift your available energy" }
+        return "Recovery, sleep, nutrition and routines combined"
     }
 
     var dailyPlan: [DailyPlanItem] {

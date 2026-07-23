@@ -47,7 +47,7 @@ enum PeakConstants {
         static let maxHabits = 3
         static let maxAIMessagesPerMonth = 10
         static let historyDays = 14
-        static let maxCoachConversations = 1
+        static let maxCoachConversations = 30
     }
 
     // MARK: - Premium Limits
