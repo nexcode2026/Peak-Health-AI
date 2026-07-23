@@ -1,0 +1,652 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1AD8C262E8C646C0A33A595E /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDED83DA1F004C8EB2D453AD /* Constants.swift */; };
+		7C96E935C71B42908800DAB0 /* ErrorHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46CD8FE92DFF452C83F139A7 /* ErrorHandling.swift */; };
+		DFDDFA906EC040EC995E8F82 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B48D06806484F9AAD690BD0 /* Extensions.swift */; };
+		93E0170C97D64BAC8A7E2DFD /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 353C5193542947C28C92D507 /* Haptics.swift */; };
+		939F0954EC924C99B5E63D96 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F564E3E56F824A25B52AEE12 /* Theme.swift */; };
+		FE07D599AE0845D895FD2EDD /* CoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48FD02CA2CE54D23943B6210 /* CoachView.swift */; };
+		B3F4CB694DEA4CB5B569EC5B /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5C03BF3A74C7B89579617 /* DashboardView.swift */; };
+		F3025EB43CEA4DDA879E6EBA /* InsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 372E5C04A5A34C848F0E362B /* InsightsView.swift */; };
+		E1F8900FC36E4357B8513B64 /* TrackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D36473352324FBB943062FE /* TrackView.swift */; };
+		435D41438A8A431DA787A689 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 359CCC65DA044471B70DF8D4 /* OnboardingView.swift */; };
+		299D182D41F74AE7BF96EBE2 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBB80290493A43B285ED909A /* PaywallView.swift */; };
+		DB45672D48884F329C5E777D /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A71EE70F01D41DE8D69F8A4 /* ProfileView.swift */; };
+		FFC4D425D9C8483ABCE1012D /* Achievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = A06C36A72052446BA6FB6AC1 /* Achievement.swift */; };
+		05087E8ECB194C99847A9DA9 /* CoachModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991744704FA54D05A63D23F0 /* CoachModels.swift */; };
+		81791EB9311C4530B817B02B /* HabitModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4886A3AFDF24A83A1045E95 /* HabitModels.swift */; };
+		C1A7E26CB1A24FA9B9D715D6 /* HealthSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 420D7E1456A3419083DBAFFA /* HealthSnapshot.swift */; };
+		D89E9AE2BF324C86BA8C5871 /* HydrationLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C6B99B4F2104C44B02206EA /* HydrationLog.swift */; };
+		CC181032E594410BA584AD7F /* JournalEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C063853072A249BDA300463D /* JournalEntry.swift */; };
+		A37DA74F87034A259AD5AA97 /* MoodReflection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F7465ACAFC4BF8BFEAFFBD /* MoodReflection.swift */; };
+		D73E097F606644B088AB0ABA /* RecoveryScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B502F397FB943A382A824B1 /* RecoveryScore.swift */; };
+		901DBF1332C448C0BF3658C6 /* SampleDataGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F548480F7E242BAB50CB5C5 /* SampleDataGenerator.swift */; };
+		2234540ACFE84498BCD957FC /* SubscriptionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46298806317D40688D05354A /* SubscriptionState.swift */; };
+		D616FC778B714F39AF8E727F /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F379F0D15FB429E97FCB6D1 /* UserProfile.swift */; };
+		EAAA129A9EC044CEAB6391AD /* PeakApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA2AE503AB54C2E9EE303DA /* PeakApp.swift */; };
+		835A222BE2214024A3E747CD /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2AF39E7B2D4A34BCBA7676 /* AIService.swift */; };
+		3E7041172BC9473A9BFFDAF2 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4949AF8CDC49A79745DC9A /* AppContainer.swift */; };
+		78E13216C6F243928E6E7D97 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C96A890B17B42ED89DFAB1E /* AuthService.swift */; };
+		5215AAB085A04AC49FA4BB43 /* BiometricAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22F890568A8E49B981964CC2 /* BiometricAuthService.swift */; };
+		073B1844FBD4449EB360722D /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01EEB8EEBA84A6C9EE763B7 /* ExportService.swift */; };
+		67A958491DE84140806999E1 /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ADDF665DFFA44FA89D4C186 /* HealthKitService.swift */; };
+		776BD923A4034A0891535E4D /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4007CF73A2345B3B65B03BB /* KeychainService.swift */; };
+		8429E4BEB4F644088D1EBE51 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C13A0638744BD9A6AD97FF /* NotificationService.swift */; };
+		7391B467D66A498AA6717DA8 /* RecoveryScoringService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B7322FA5414DB5AB5F70F6 /* RecoveryScoringService.swift */; };
+		B4F9F9F878424C0FAC5748C8 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8110D1F2E74C4401B111586E /* SubscriptionService.swift */; };
+		ADB3D25E699E48E5BBE11718 /* CoachViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55937F802AE54B4388AC84AA /* CoachViewModel.swift */; };
+		441CF996D3EF4FAF8D9E9FB7 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B2D3B4EE45A42C0993F1DCB /* DashboardViewModel.swift */; };
+		0037AADB26734B379EF00CFA /* InsightsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13CD2E71D1B54460AB0FC702 /* InsightsViewModel.swift */; };
+		26AF919561044FD0A980ED56 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C51030B0774CABB9BB6270 /* ProfileViewModel.swift */; };
+		F468CA57247A43D3883CCC0F /* TrackViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55174AA27CA14A959E7265D6 /* TrackViewModel.swift */; };
+		6A7B01AB22B942639BD6BB72 /* DisclaimerBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469F5CDE8412486481684C95 /* DisclaimerBanner.swift */; };
+		D067F8505F224002B23AAC3D /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A13122159BB4C4AA6646148 /* EmptyStateView.swift */; };
+		025F5A858ACE4EB3BEA37280 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09129089216F4CACBE3E7552 /* LoadingView.swift */; };
+		C147BD33D0A7408298D9096D /* MoodPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F85EC0F96A8401DA3DAC873 /* MoodPicker.swift */; };
+		311939FD8EA74F9EA2A2323B /* PeakCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 780C3FB508F0408F96A835FC /* PeakCard.swift */; };
+		992BB3209B514AE4980FE1C4 /* ProgressRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = E074B2807BA04822AB2D3386 /* ProgressRing.swift */; };
+		D29DDDA880D745209184E482 /* RecoveryGauge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D911F86CD694B69AAD76612 /* RecoveryGauge.swift */; };
+		37ACBC29E1F5445B9B4AB83A /* RecoveryScoringServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 260FAC2390AD445B878FB39D /* RecoveryScoringServiceTests.swift */; };
+		A85E2694B78849B7A5E631E2 /* SubscriptionTierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23B37007853641E2BD759CDB /* SubscriptionTierTests.swift */; };
+		89D1ABD3BF2142F8B8945C2F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EFA0F6B5457D492DB847E11F /* Assets.xcassets */; };
+		C242E2F51A044F23B30DCDA5 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 304D2478A8C6434F9CBF3DA2 /* Preview Assets.xcassets */; };
+		5A0465FE8869426FA71BEF4E /* Peak.storekit in Resources */ = {isa = PBXBuildFile; fileRef = CFED760B61FA4BF4B1EB9691 /* Peak.storekit */; };
+		4365CD1FFE854C03B14AA4D1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 83D1D5EB66634D4FA7185AC8 /* PrivacyInfo.xcprivacy */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		751B9BEBFE76428D9F36F6FC /* Peak.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Peak.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9EE3331715CC40B6BCA383EF /* PeakTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PeakTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FDED83DA1F004C8EB2D453AD /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		46CD8FE92DFF452C83F139A7 /* ErrorHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandling.swift; sourceTree = "<group>"; };
+		7B48D06806484F9AAD690BD0 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		353C5193542947C28C92D507 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
+		F564E3E56F824A25B52AEE12 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		48FD02CA2CE54D23943B6210 /* CoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachView.swift; sourceTree = "<group>"; };
+		2BF5C03BF3A74C7B89579617 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		372E5C04A5A34C848F0E362B /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
+		8D36473352324FBB943062FE /* TrackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackView.swift; sourceTree = "<group>"; };
+		359CCC65DA044471B70DF8D4 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		DBB80290493A43B285ED909A /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		9A71EE70F01D41DE8D69F8A4 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		A06C36A72052446BA6FB6AC1 /* Achievement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Achievement.swift; sourceTree = "<group>"; };
+		991744704FA54D05A63D23F0 /* CoachModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachModels.swift; sourceTree = "<group>"; };
+		D4886A3AFDF24A83A1045E95 /* HabitModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitModels.swift; sourceTree = "<group>"; };
+		420D7E1456A3419083DBAFFA /* HealthSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthSnapshot.swift; sourceTree = "<group>"; };
+		8C6B99B4F2104C44B02206EA /* HydrationLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HydrationLog.swift; sourceTree = "<group>"; };
+		C063853072A249BDA300463D /* JournalEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntry.swift; sourceTree = "<group>"; };
+		79F7465ACAFC4BF8BFEAFFBD /* MoodReflection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodReflection.swift; sourceTree = "<group>"; };
+		3B502F397FB943A382A824B1 /* RecoveryScore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryScore.swift; sourceTree = "<group>"; };
+		6F548480F7E242BAB50CB5C5 /* SampleDataGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleDataGenerator.swift; sourceTree = "<group>"; };
+		46298806317D40688D05354A /* SubscriptionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionState.swift; sourceTree = "<group>"; };
+		6F379F0D15FB429E97FCB6D1 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
+		FEA2AE503AB54C2E9EE303DA /* PeakApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeakApp.swift; sourceTree = "<group>"; };
+		4D2AF39E7B2D4A34BCBA7676 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
+		AE4949AF8CDC49A79745DC9A /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
+		4C96A890B17B42ED89DFAB1E /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		22F890568A8E49B981964CC2 /* BiometricAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricAuthService.swift; sourceTree = "<group>"; };
+		B01EEB8EEBA84A6C9EE763B7 /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
+		6ADDF665DFFA44FA89D4C186 /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
+		B4007CF73A2345B3B65B03BB /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		54C13A0638744BD9A6AD97FF /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		A2B7322FA5414DB5AB5F70F6 /* RecoveryScoringService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryScoringService.swift; sourceTree = "<group>"; };
+		8110D1F2E74C4401B111586E /* SubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
+		55937F802AE54B4388AC84AA /* CoachViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachViewModel.swift; sourceTree = "<group>"; };
+		3B2D3B4EE45A42C0993F1DCB /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
+		13CD2E71D1B54460AB0FC702 /* InsightsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsViewModel.swift; sourceTree = "<group>"; };
+		B9C51030B0774CABB9BB6270 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
+		55174AA27CA14A959E7265D6 /* TrackViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackViewModel.swift; sourceTree = "<group>"; };
+		469F5CDE8412486481684C95 /* DisclaimerBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisclaimerBanner.swift; sourceTree = "<group>"; };
+		6A13122159BB4C4AA6646148 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
+		09129089216F4CACBE3E7552 /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
+		6F85EC0F96A8401DA3DAC873 /* MoodPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodPicker.swift; sourceTree = "<group>"; };
+		780C3FB508F0408F96A835FC /* PeakCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeakCard.swift; sourceTree = "<group>"; };
+		E074B2807BA04822AB2D3386 /* ProgressRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressRing.swift; sourceTree = "<group>"; };
+		7D911F86CD694B69AAD76612 /* RecoveryGauge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryGauge.swift; sourceTree = "<group>"; };
+		260FAC2390AD445B878FB39D /* RecoveryScoringServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryScoringServiceTests.swift; sourceTree = "<group>"; };
+		23B37007853641E2BD759CDB /* SubscriptionTierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionTierTests.swift; sourceTree = "<group>"; };
+		EFA0F6B5457D492DB847E11F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		304D2478A8C6434F9CBF3DA2 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		558D34CEA6054E8E8CBFF0DD /* Peak.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Peak.entitlements; sourceTree = "<group>"; };
+		CFED760B61FA4BF4B1EB9691 /* Peak.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Peak.storekit; sourceTree = "<group>"; };
+		83D1D5EB66634D4FA7185AC8 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		9E7DBACF456046A4971A9E63 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4801FCA5EDEC4359A76D03DD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1400154FE53F4E509678BD4E = {
+			isa = PBXGroup;
+			children = (
+				C75744781F154E688669277D /* Peak */,
+				40F6A06857A24F09973925CE /* PeakTests */,
+				A074E06EE9954A5C99021F35 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A074E06EE9954A5C99021F35 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				751B9BEBFE76428D9F36F6FC /* Peak.app */,
+				9EE3331715CC40B6BCA383EF /* PeakTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C75744781F154E688669277D /* Peak */ = {
+			isa = PBXGroup;
+			children = (
+				304D2478A8C6434F9CBF3DA2,
+				4D89A22D6B1C4AF190945707,
+				558D34CEA6054E8E8CBFF0DD,
+				588E96FA1EEE4F27BF739542,
+				6E00B1BA3FA64B339583EE24,
+				83D1D5EB66634D4FA7185AC8,
+				84FBA7F1073543ECA7D9C66C,
+				CFED760B61FA4BF4B1EB9691,
+				D39B87F477DC4194A74AA56D,
+				E6A8EEEFB8304558B182B93A,
+				EFA0F6B5457D492DB847E11F,
+				FEA2AE503AB54C2E9EE303DA,
+			);
+			path = Peak;
+			sourceTree = "<group>";
+		};
+		4D89A22D6B1C4AF190945707 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				353C5193542947C28C92D507,
+				46CD8FE92DFF452C83F139A7,
+				7B48D06806484F9AAD690BD0,
+				F564E3E56F824A25B52AEE12,
+				FDED83DA1F004C8EB2D453AD,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		E6A8EEEFB8304558B182B93A /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				38834D30911743CAB4626650,
+				43D7CFE392144A16940A7E61,
+				54AAD353C8DB469C80115424,
+				715F0A25C70740CFABCE8F43,
+				DDE89BCFFEF3409F947C0B33,
+				E8A639ED87854CDC810866A0,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		DDE89BCFFEF3409F947C0B33 /* Coach */ = {
+			isa = PBXGroup;
+			children = (
+				48FD02CA2CE54D23943B6210,
+			);
+			path = Coach;
+			sourceTree = "<group>";
+		};
+		715F0A25C70740CFABCE8F43 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				2BF5C03BF3A74C7B89579617,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		43D7CFE392144A16940A7E61 /* Insights */ = {
+			isa = PBXGroup;
+			children = (
+				372E5C04A5A34C848F0E362B,
+			);
+			path = Insights;
+			sourceTree = "<group>";
+		};
+		E8A639ED87854CDC810866A0 /* Logging */ = {
+			isa = PBXGroup;
+			children = (
+				8D36473352324FBB943062FE,
+			);
+			path = Logging;
+			sourceTree = "<group>";
+		};
+		54AAD353C8DB469C80115424 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				359CCC65DA044471B70DF8D4,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		38834D30911743CAB4626650 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				9A71EE70F01D41DE8D69F8A4,
+				DBB80290493A43B285ED909A,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		D39B87F477DC4194A74AA56D /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				3B502F397FB943A382A824B1,
+				420D7E1456A3419083DBAFFA,
+				46298806317D40688D05354A,
+				6F379F0D15FB429E97FCB6D1,
+				6F548480F7E242BAB50CB5C5,
+				79F7465ACAFC4BF8BFEAFFBD,
+				8C6B99B4F2104C44B02206EA,
+				991744704FA54D05A63D23F0,
+				A06C36A72052446BA6FB6AC1,
+				C063853072A249BDA300463D,
+				D4886A3AFDF24A83A1045E95,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		588E96FA1EEE4F27BF739542 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				22F890568A8E49B981964CC2,
+				4C96A890B17B42ED89DFAB1E,
+				4D2AF39E7B2D4A34BCBA7676,
+				54C13A0638744BD9A6AD97FF,
+				6ADDF665DFFA44FA89D4C186,
+				8110D1F2E74C4401B111586E,
+				A2B7322FA5414DB5AB5F70F6,
+				AE4949AF8CDC49A79745DC9A,
+				B01EEB8EEBA84A6C9EE763B7,
+				B4007CF73A2345B3B65B03BB,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		84FBA7F1073543ECA7D9C66C /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				13CD2E71D1B54460AB0FC702,
+				3B2D3B4EE45A42C0993F1DCB,
+				55174AA27CA14A959E7265D6,
+				55937F802AE54B4388AC84AA,
+				B9C51030B0774CABB9BB6270,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		6E00B1BA3FA64B339583EE24 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				6CBAB9DBA39443F781D32741,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		6CBAB9DBA39443F781D32741 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				09129089216F4CACBE3E7552,
+				469F5CDE8412486481684C95,
+				6A13122159BB4C4AA6646148,
+				6F85EC0F96A8401DA3DAC873,
+				780C3FB508F0408F96A835FC,
+				7D911F86CD694B69AAD76612,
+				E074B2807BA04822AB2D3386,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		40F6A06857A24F09973925CE /* PeakTests */ = {
+			isa = PBXGroup;
+			children = (
+				260FAC2390AD445B878FB39D /* RecoveryScoringServiceTests.swift */,
+				23B37007853641E2BD759CDB /* SubscriptionTierTests.swift */,
+			);
+			path = PeakTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		250BC6B83F9049038DB80BC0 /* Peak */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7C6CC5B1B93D47299E1E3D08 /* Build configuration list for PBXNativeTarget "Peak" */;
+			buildPhases = (
+				110C520EED9E4326B0547769 /* Sources */,
+				9E7DBACF456046A4971A9E63 /* Frameworks */,
+				88D0E5BE9DB44AA1B90BAC35 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = Peak;
+			productName = Peak;
+			productReference = 751B9BEBFE76428D9F36F6FC /* Peak.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B8D35D57D9C54FFD82A0E728 /* PeakTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0E99E36F65A74E20AF437101 /* Build configuration list for PBXNativeTarget "PeakTests" */;
+			buildPhases = (
+				920AC19EC40F4000ABC6A6DF /* Sources */,
+				4801FCA5EDEC4359A76D03DD /* Frameworks */,
+			);
+			buildRules = ();
+			dependencies = (
+				0B33110B57E04F7DB4147507 /* PBXTargetDependency */,
+			);
+			name = PeakTests;
+			productName = PeakTests;
+			productReference = 9EE3331715CC40B6BCA383EF /* PeakTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A6C06218FA9F46BC8C17BEE0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					250BC6B83F9049038DB80BC0 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					B8D35D57D9C54FFD82A0E728 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 250BC6B83F9049038DB80BC0;
+					};
+				};
+			};
+			buildConfigurationList = 1C8981E7D7914EA59BC7A3F0 /* Build configuration list for PBXProject "Peak" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base);
+			mainGroup = 1400154FE53F4E509678BD4E;
+			productRefGroup = A074E06EE9954A5C99021F35 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				250BC6B83F9049038DB80BC0 /* Peak */,
+				B8D35D57D9C54FFD82A0E728 /* PeakTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		88D0E5BE9DB44AA1B90BAC35 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				89D1ABD3BF2142F8B8945C2F /* Assets.xcassets in Resources */,
+				C242E2F51A044F23B30DCDA5 /* Preview Assets.xcassets in Resources */,
+				5A0465FE8869426FA71BEF4E /* Peak.storekit in Resources */,
+				4365CD1FFE854C03B14AA4D1 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		110C520EED9E4326B0547769 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AD8C262E8C646C0A33A595E /* Constants.swift in Sources */,
+				7C96E935C71B42908800DAB0 /* ErrorHandling.swift in Sources */,
+				DFDDFA906EC040EC995E8F82 /* Extensions.swift in Sources */,
+				93E0170C97D64BAC8A7E2DFD /* Haptics.swift in Sources */,
+				939F0954EC924C99B5E63D96 /* Theme.swift in Sources */,
+				FE07D599AE0845D895FD2EDD /* CoachView.swift in Sources */,
+				B3F4CB694DEA4CB5B569EC5B /* DashboardView.swift in Sources */,
+				F3025EB43CEA4DDA879E6EBA /* InsightsView.swift in Sources */,
+				E1F8900FC36E4357B8513B64 /* TrackView.swift in Sources */,
+				435D41438A8A431DA787A689 /* OnboardingView.swift in Sources */,
+				299D182D41F74AE7BF96EBE2 /* PaywallView.swift in Sources */,
+				DB45672D48884F329C5E777D /* ProfileView.swift in Sources */,
+				FFC4D425D9C8483ABCE1012D /* Achievement.swift in Sources */,
+				05087E8ECB194C99847A9DA9 /* CoachModels.swift in Sources */,
+				81791EB9311C4530B817B02B /* HabitModels.swift in Sources */,
+				C1A7E26CB1A24FA9B9D715D6 /* HealthSnapshot.swift in Sources */,
+				D89E9AE2BF324C86BA8C5871 /* HydrationLog.swift in Sources */,
+				CC181032E594410BA584AD7F /* JournalEntry.swift in Sources */,
+				A37DA74F87034A259AD5AA97 /* MoodReflection.swift in Sources */,
+				D73E097F606644B088AB0ABA /* RecoveryScore.swift in Sources */,
+				901DBF1332C448C0BF3658C6 /* SampleDataGenerator.swift in Sources */,
+				2234540ACFE84498BCD957FC /* SubscriptionState.swift in Sources */,
+				D616FC778B714F39AF8E727F /* UserProfile.swift in Sources */,
+				EAAA129A9EC044CEAB6391AD /* PeakApp.swift in Sources */,
+				835A222BE2214024A3E747CD /* AIService.swift in Sources */,
+				3E7041172BC9473A9BFFDAF2 /* AppContainer.swift in Sources */,
+				78E13216C6F243928E6E7D97 /* AuthService.swift in Sources */,
+				5215AAB085A04AC49FA4BB43 /* BiometricAuthService.swift in Sources */,
+				073B1844FBD4449EB360722D /* ExportService.swift in Sources */,
+				67A958491DE84140806999E1 /* HealthKitService.swift in Sources */,
+				776BD923A4034A0891535E4D /* KeychainService.swift in Sources */,
+				8429E4BEB4F644088D1EBE51 /* NotificationService.swift in Sources */,
+				7391B467D66A498AA6717DA8 /* RecoveryScoringService.swift in Sources */,
+				B4F9F9F878424C0FAC5748C8 /* SubscriptionService.swift in Sources */,
+				ADB3D25E699E48E5BBE11718 /* CoachViewModel.swift in Sources */,
+				441CF996D3EF4FAF8D9E9FB7 /* DashboardViewModel.swift in Sources */,
+				0037AADB26734B379EF00CFA /* InsightsViewModel.swift in Sources */,
+				26AF919561044FD0A980ED56 /* ProfileViewModel.swift in Sources */,
+				F468CA57247A43D3883CCC0F /* TrackViewModel.swift in Sources */,
+				6A7B01AB22B942639BD6BB72 /* DisclaimerBanner.swift in Sources */,
+				D067F8505F224002B23AAC3D /* EmptyStateView.swift in Sources */,
+				025F5A858ACE4EB3BEA37280 /* LoadingView.swift in Sources */,
+				C147BD33D0A7408298D9096D /* MoodPicker.swift in Sources */,
+				311939FD8EA74F9EA2A2323B /* PeakCard.swift in Sources */,
+				992BB3209B514AE4980FE1C4 /* ProgressRing.swift in Sources */,
+				D29DDDA880D745209184E482 /* RecoveryGauge.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		920AC19EC40F4000ABC6A6DF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				37ACBC29E1F5445B9B4AB83A /* RecoveryScoringServiceTests.swift in Sources */,
+				A85E2694B78849B7A5E631E2 /* SubscriptionTierTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		7974C4E70EEC4507BBFA74E6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		4B7A6C93F28F41C8968BEEE3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		DE467D34ACC54315829146F7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Peak/Peak.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Peak;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Peak uses Face ID to quickly and securely unlock the app.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Peak reads your sleep, heart rate, HRV, and activity data to calculate your daily recovery score.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Peak can write hydration and mindfulness data to Health when you log entries.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Peak lets you attach photos to mood reflections and journal entries.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.peak.health;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+			};
+			name = Debug;
+		};
+		8026C17848474517A9FAE979 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Peak/Peak.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Peak;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Peak uses Face ID to quickly and securely unlock the app.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Peak reads your sleep, heart rate, HRV, and activity data to calculate your daily recovery score.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Peak can write hydration and mindfulness data to Health when you log entries.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Peak lets you attach photos to mood reflections and journal entries.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.peak.health;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+			};
+			name = Release;
+		};
+		12ECF010BD8744EAB1EA13A0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Peak/Peak.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.peak.health.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Peak.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Peak";
+			};
+			name = Debug;
+		};
+		9CD728CCA87043489E30DCA2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Peak/Peak.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.peak.health.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Peak.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Peak";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1C8981E7D7914EA59BC7A3F0 /* Build configuration list for PBXNativeTarget "Project" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7974C4E70EEC4507BBFA74E6 /* Debug */,
+				4B7A6C93F28F41C8968BEEE3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7C6CC5B1B93D47299E1E3D08 /* Build configuration list for PBXNativeTarget "Peak" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DE467D34ACC54315829146F7 /* Debug */,
+				8026C17848474517A9FAE979 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0E99E36F65A74E20AF437101 /* Build configuration list for PBXNativeTarget "PeakTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				12ECF010BD8744EAB1EA13A0 /* Debug */,
+				9CD728CCA87043489E30DCA2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A6C06218FA9F46BC8C17BEE0 /* Project object */;
+}
