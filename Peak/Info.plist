@@ -18,31 +18,16 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleURLTypes</key>
+	<array/>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>Google OAuth</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>$(GOOGLE_REDIRECT_SCHEME)</string>
-			</array>
-		</dict>
-	</array>
-	<key>GOOGLE_CLIENT_ID</key>
-	<string>$(GOOGLE_CLIENT_ID)</string>
-	<key>GOOGLE_REDIRECT_SCHEME</key>
-	<string>$(GOOGLE_REDIRECT_SCHEME)</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.healthcare-fitness</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>Peak uses Face ID to quickly and securely unlock the app.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Peak uses the camera when you choose to scan a food barcode or analyze a meal photo.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Peak uses Face ID to quickly and securely unlock the app.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Peak reads sleep, heart rate, respiratory rate, blood pressure, blood oxygen, temperature, body measurements, activity, and optional cycle data to provide private health monitoring and recovery insights.</string>
 	<key>NSHealthUpdateUsageDescription</key>

@@ -820,8 +820,6 @@
 				CURRENT_PROJECT_VERSION = 13;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				GOOGLE_CLIENT_ID = REPLACE_ME.apps.googleusercontent.com;
-				GOOGLE_REDIRECT_SCHEME = com.googleusercontent.apps.REPLACE_ME;
 				INFOPLIST_FILE = Peak/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Peak Health";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
@@ -863,8 +861,6 @@
 				CURRENT_PROJECT_VERSION = 13;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				GOOGLE_CLIENT_ID = REPLACE_ME.apps.googleusercontent.com;
-				GOOGLE_REDIRECT_SCHEME = com.googleusercontent.apps.REPLACE_ME;
 				INFOPLIST_FILE = Peak/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Peak Health";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
