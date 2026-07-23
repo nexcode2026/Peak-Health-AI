@@ -69,21 +69,21 @@
         {
           "adHocOffers" : [],
           "codeOffers" : [],
-          "displayPrice" : "19.99",
-          "familyShareable" : false,
-          "groupNumber" : 2,
-          "internalID" : "peak_pro",
+          "displayPrice" : "3.99",
+          "familyShareable" : true,
+          "groupNumber" : 1,
+          "internalID" : "peak_weekly",
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "2000 AI messages/month for power users",
-              "displayName" : "Peak Pro Monthly",
+              "description" : "Flexible full access, billed every week",
+              "displayName" : "Peak Premium Weekly",
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.peak.pro.monthly",
-          "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Pro Monthly",
+          "productID" : "com.peak.premium.weekly",
+          "recurringSubscriptionPeriod" : "P1W",
+          "referenceName" : "Premium Weekly",
           "subscriptionGroupID" : "peak_premium",
           "type" : "RecurringSubscription"
         }

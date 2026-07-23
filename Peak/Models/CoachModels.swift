@@ -5,13 +5,13 @@ import SwiftData
 
 @Model
 final class CoachConversation {
-    var id: UUID
-    var title: String
-    var createdAt: Date
-    var updatedAt: Date
+    var id: UUID = UUID()
+    var title: String = "New Conversation"
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
 
     @Relationship(deleteRule: .cascade, inverse: \CoachMessage.conversation)
-    var messages: [CoachMessage]
+    var messages: [CoachMessage]? = []
 
     init(title: String = "New Conversation") {
         self.id = UUID()
@@ -24,12 +24,12 @@ final class CoachConversation {
 
 @Model
 final class CoachMessage {
-    var id: UUID
-    var role: String // "user", "assistant", "system"
-    var content: String
-    var createdAt: Date
-    var tokenCount: Int
-    var conversation: CoachConversation?
+    var id: UUID = UUID()
+    var role: String = "user" // "user", "assistant", "system"
+    var content: String = ""
+    var createdAt: Date = Date()
+    var tokenCount: Int = 0
+    var conversation: CoachConversation? = nil
 
     init(role: CoachRole, content: String, tokenCount: Int = 0) {
         self.id = UUID()
@@ -54,11 +54,11 @@ enum CoachRole: String, Codable {
 
 @Model
 final class AIUsageRecord {
-    var id: UUID
-    var month: String // "2026-06"
-    var messageCount: Int
-    var tokenCount: Int
-    var lastUpdated: Date
+    var id: UUID = UUID()
+    var month: String = "" // "2026-06"
+    var messageCount: Int = 0
+    var tokenCount: Int = 0
+    var lastUpdated: Date = Date()
 
     init(month: String = AIUsageRecord.currentMonth) {
         self.id = UUID()

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Peak Health</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>Google OAuth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$(GOOGLE_REDIRECT_SCHEME)</string>
+			</array>
+		</dict>
+	</array>
+	<key>GOOGLE_CLIENT_ID</key>
+	<string>$(GOOGLE_CLIENT_ID)</string>
+	<key>GOOGLE_REDIRECT_SCHEME</key>
+	<string>$(GOOGLE_REDIRECT_SCHEME)</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.healthcare-fitness</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Peak uses Face ID to quickly and securely unlock the app.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Peak uses the camera when you choose to scan a food barcode or analyze a meal photo.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Peak reads sleep, heart rate, respiratory rate, blood pressure, blood oxygen, temperature, body measurements, activity, and optional cycle data to provide private health monitoring and recovery insights.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Peak can write hydration and mindfulness data to Health when you log entries.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Peak uses your location for outdoor workouts and to show live local Apple Weather conditions on Today.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Peak uses motion data to count steps and track workout intensity during activities.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Peak lets you choose profile, journal, and meal photos, including photos you explicitly select for AI meal analysis.</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+	</dict>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+</dict>
+</plist>

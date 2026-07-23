@@ -5,7 +5,8 @@ import Foundation
 enum PeakConstants {
     static let appName = "Peak"
     static let bundleIdentifier = "com.peak.health"
-    static let cloudKitContainer = "iCloud.com.peak.health"
+    // Must exactly match Peak.entitlements and the App ID's provisioning profile.
+    static let cloudKitContainer = "iCloud.com.nexcode.peak.health"
     static let minimumIOSVersion = "18.0"
 
     // MARK: - Recovery Scoring Weights (documented assumptions)
@@ -26,14 +27,19 @@ enum PeakConstants {
         static let recoveryTarget: Int = 75
         static let dailyStepsGoal: Int = 10_000
         static let habitGlassML: Int = 250
+        static let dailyCalorieGoal: Int = 2200
+        static let dailyProteinGoalG: Int = 120
+        static let weeklyWorkoutGoal: Int = 4
+        static let dailyActiveMinutesGoal: Int = 30
+        static let restingHRTarget: Int = 60
     }
 
     // MARK: - Subscription Product IDs
     enum Products {
+        static let premiumWeekly = "com.peak.premium.weekly"
         static let premiumMonthly = "com.peak.premium.monthly"
         static let premiumYearly = "com.peak.premium.yearly"
-        static let proMonthly = "com.peak.pro.monthly"
-        static let all = [premiumMonthly, premiumYearly, proMonthly]
+        static let all = [premiumWeekly, premiumMonthly, premiumYearly]
     }
 
     // MARK: - Free Tier Limits

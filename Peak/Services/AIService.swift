@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import SwiftData
 
@@ -12,7 +13,36 @@ protocol AIServiceProtocol: Sendable {
         modelContext: ModelContext
     ) async throws -> CoachResponse
     func suggestionChips(for context: CoachContext) -> [String]
+    func analyzeMeal(_ request: MealAnalysisRequest) async throws -> MealAnalysisResult
     var systemPrompt: String { get }
+}
+
+enum MealAnalysisSource: String, Sendable {
+    case search, photo, barcode, manual
+}
+
+struct MealAnalysisRequest: Sendable {
+    var query: String?
+    var imageData: Data?
+    var source: MealAnalysisSource
+}
+
+struct MealAnalysisItem: Identifiable, Sendable {
+    let id = UUID()
+    var name: String
+    var serving: String
+    var calories: Int
+    var proteinG: Double
+    var carbsG: Double
+    var fatG: Double
+    var confidence: Double
+}
+
+struct MealAnalysisResult: Sendable {
+    var title: String
+    var overview: String
+    var items: [MealAnalysisItem]
+    var source: MealAnalysisSource
 }
 
 struct CoachContext: Sendable {
@@ -26,6 +56,10 @@ struct CoachContext: Sendable {
     var moodRating: Int = 0
     var goals: String = ""
     var recentTrend: String = ""
+    var allowsOpenAI: Bool = false
+    var wellnessStatus: String = "Normal"
+    var cycleTrackingEnabled: Bool = false
+    var cycleSummary: String = ""
 }
 
 struct CoachMessageDTO: Sendable {
@@ -36,35 +70,25 @@ struct CoachMessageDTO: Sendable {
 struct CoachResponse: Sendable {
     let content: String
     let tokenCount: Int
-    let usedGrokAPI: Bool
+    let usedOpenAIAPI: Bool
 }
 
-// MARK: - Hybrid AI: On-device fallback + optional xAI Grok API
+// MARK: - Hybrid AI: on-device fallback + optional OpenAI Responses API
 
 final class AIService: AIServiceProtocol, @unchecked Sendable {
     private let keychain: KeychainService
-    private let grokEndpoint = "https://api.x.ai/v1/chat/completions"
-    private let grokModel = "grok-3-mini"
+    private let openAIEndpoint = "https://api.openai.com/v1/responses"
+    // Peak Coach is a conversational, latency-sensitive path. Terra preserves
+    // the previous mini-model role while using the current GPT-5.6 family.
+    private let openAIModel = "gpt-5.6-terra"
 
     var systemPrompt: String {
         """
-        You are Peak Coach, an empathetic, evidence-based wellness coach inside the Peak health app.
+        You are Peak Coach, a warm, evidence-aware wellness coach inside the Peak health app.
 
-        PERSONA: Warm, motivating, concise. Celebrate progress. Never preachy. Use plain language.
+        Help the user understand recovery, sleep, hydration, nutrition, activity, mood, and sustainable habits using only the supplied context. State the most useful answer first, use short sections or bullets when they improve clarity, and ask at most one helpful follow-up question.
 
-        SAFETY (CRITICAL):
-        - You are NOT a doctor, therapist, or medical device.
-        - Never diagnose conditions or prescribe treatments.
-        - For pain, injury, eating disorders, mental health crises, or medication questions → urge professional help.
-        - Always include: "This is wellness guidance, not medical advice."
-
-        CAPABILITIES:
-        - Explain recovery scores and trends
-        - Suggest sustainable micro-habits and 7-day plans
-        - Sleep, hydration, and activity balance tips
-        - Mood and reflection prompts
-
-        STYLE: Short paragraphs. Bullet points for plans. Ask one follow-up question when helpful.
+        Adapt suggestions to the user's explicitly selected daily status (Normal, Injured, Sick, Resting, or Traveling). When cycle context is supplied, personalize sleep, recovery, training, hydration, and habit suggestions without presenting phase estimates as fertility or pregnancy predictions. Never diagnose, prescribe treatment, or claim to replace a clinician. For symptoms, injury, medication, disordered eating, menstrual concerns, pregnancy concerns, or mental-health risk, recommend appropriate professional help. Do not infer medical conditions from scores. End health recommendations with: "This is wellness guidance, not medical advice."
         """
     }
 
@@ -84,19 +108,21 @@ final class AIService: AIServiceProtocol, @unchecked Sendable {
         let contextBlock = buildContextBlock(context)
         let fullSystem = systemPrompt + "\n\nUSER CONTEXT:\n" + contextBlock
 
-        // Try Grok API if key is configured and user opted in
-        if let apiKey = keychain.read(for: .grokAPIKey), !apiKey.isEmpty {
+        // Cloud coaching is explicit opt-in because the context can contain health data.
+        if context.allowsOpenAI,
+           let apiKey = keychain.read(for: .openAIAPIKey),
+           !apiKey.isEmpty {
             do {
-                let response = try await callGrokAPI(
+                let response = try await callOpenAI(
                     apiKey: apiKey,
-                    system: fullSystem,
+                    instructions: fullSystem,
                     history: history,
                     userMessage: message
                 )
                 await recordUsage(modelContext: modelContext, tokens: response.tokenCount)
                 return response
             } catch {
-                PeakLogger.ai.warning("Grok API failed, falling back to on-device: \(error.localizedDescription)")
+                PeakLogger.ai.warning("OpenAI API failed, falling back to on-device: \(error.localizedDescription)")
             }
         }
 
@@ -119,31 +145,160 @@ final class AIService: AIServiceProtocol, @unchecked Sendable {
         if context.moodRating > 0 && context.moodRating < 3 {
             chips.append("I'm feeling low energy")
         }
+        if context.cycleTrackingEnabled {
+            chips.insert("Help me plan around my cycle", at: 1)
+        }
         return Array(chips.prefix(4))
     }
 
-    // MARK: - Grok API
+    func analyzeMeal(_ analysisRequest: MealAnalysisRequest) async throws -> MealAnalysisResult {
+        guard let apiKey = keychain.read(for: .openAIAPIKey), !apiKey.isEmpty else {
+            throw PeakError.invalidInput("Add your OpenAI API key in Settings to use AI meal analysis.")
+        }
 
-    private func callGrokAPI(
+        let prompt = """
+        Analyze this meal for a wellness food log. Identify each visible or described food separately. Estimate the most likely edible serving and calories, protein, carbohydrates, and fat for that serving. Use ordinary food names, not medical claims. Be conservative when portions are unclear and lower confidence rather than inventing precision. Nutrition values are estimates that the user will review and edit before saving.
+
+        User description: \(analysisRequest.query?.trimmed.isEmpty == false ? analysisRequest.query!.trimmed : "No additional description")
+        """
+        var content: [[String: Any]] = [["type": "input_text", "text": prompt]]
+        if let imageData = analysisRequest.imageData {
+            content.append([
+                "type": "input_image",
+                "image_url": "data:image/jpeg;base64,\(imageData.base64EncodedString())",
+                "detail": "high",
+            ])
+        }
+
+        let itemSchema: [String: Any] = [
+            "type": "object",
+            "additionalProperties": false,
+            "properties": [
+                "name": ["type": "string"],
+                "serving": ["type": "string"],
+                "calories": ["type": "integer", "minimum": 0],
+                "protein_g": ["type": "number", "minimum": 0],
+                "carbs_g": ["type": "number", "minimum": 0],
+                "fat_g": ["type": "number", "minimum": 0],
+                "confidence": ["type": "number", "minimum": 0, "maximum": 1],
+            ],
+            "required": ["name", "serving", "calories", "protein_g", "carbs_g", "fat_g", "confidence"],
+        ]
+        let schema: [String: Any] = [
+            "type": "object",
+            "additionalProperties": false,
+            "properties": [
+                "title": ["type": "string"],
+                "overview": ["type": "string"],
+                "items": ["type": "array", "minItems": 1, "maxItems": 12, "items": itemSchema],
+            ],
+            "required": ["title", "overview", "items"],
+        ]
+        var body: [String: Any] = [
+            "model": "gpt-5.6-terra",
+            "instructions": "Return a careful, editable meal estimate. Complete the requested schema and nothing else.",
+            "input": [["role": "user", "content": content]],
+            "reasoning": ["effort": "low"],
+            "max_output_tokens": 1200,
+            "text": [
+                "verbosity": "low",
+                "format": [
+                    "type": "json_schema",
+                    "name": "peak_meal_analysis",
+                    "strict": true,
+                    "schema": schema,
+                ],
+            ],
+            "store": false,
+        ]
+        if let safetyIdentifier { body["safety_identifier"] = safetyIdentifier }
+
+        var request = URLRequest(url: URL(string: openAIEndpoint)!)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw PeakError.aiServiceUnavailable
+        }
+
+        struct ResponseEnvelope: Decodable {
+            struct Output: Decodable {
+                struct Content: Decodable { let type: String; let text: String? }
+                let type: String
+                let content: [Content]?
+            }
+            let output: [Output]
+        }
+        struct MealDTO: Decodable {
+            struct Item: Decodable {
+                let name: String
+                let serving: String
+                let calories: Int
+                let protein_g: Double
+                let carbs_g: Double
+                let fat_g: Double
+                let confidence: Double
+            }
+            let title: String
+            let overview: String
+            let items: [Item]
+        }
+
+        let envelope = try JSONDecoder().decode(ResponseEnvelope.self, from: data)
+        guard let outputText = envelope.output
+            .filter({ $0.type == "message" })
+            .flatMap({ $0.content ?? [] })
+            .first(where: { $0.type == "output_text" })?.text,
+              let outputData = outputText.data(using: .utf8) else {
+            throw PeakError.aiServiceUnavailable
+        }
+        let decoded = try JSONDecoder().decode(MealDTO.self, from: outputData)
+        return MealAnalysisResult(
+            title: decoded.title,
+            overview: decoded.overview,
+            items: decoded.items.map {
+                MealAnalysisItem(
+                    name: $0.name,
+                    serving: $0.serving,
+                    calories: $0.calories,
+                    proteinG: $0.protein_g,
+                    carbsG: $0.carbs_g,
+                    fatG: $0.fat_g,
+                    confidence: $0.confidence
+                )
+            },
+            source: analysisRequest.source
+        )
+    }
+
+    // MARK: - OpenAI Responses API
+
+    private func callOpenAI(
         apiKey: String,
-        system: String,
+        instructions: String,
         history: [CoachMessageDTO],
         userMessage: String
     ) async throws -> CoachResponse {
-        var messages: [[String: String]] = [["role": "system", "content": system]]
+        var messages: [[String: String]] = []
         for msg in history.suffix(10) {
             messages.append(["role": msg.role.rawValue, "content": msg.content])
         }
         messages.append(["role": "user", "content": userMessage])
 
-        let body: [String: Any] = [
-            "model": grokModel,
-            "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 1024,
+        var body: [String: Any] = [
+            "model": openAIModel,
+            "instructions": instructions,
+            "input": messages,
+            "max_output_tokens": 900,
+            "reasoning": ["effort": "low"],
+            "text": ["verbosity": "medium"],
+            "store": false,
         ]
+        if let safetyIdentifier { body["safety_identifier"] = safetyIdentifier }
 
-        var request = URLRequest(url: URL(string: grokEndpoint)!)
+        var request = URLRequest(url: URL(string: openAIEndpoint)!)
         request.httpMethod = "POST"
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -151,25 +306,44 @@ final class AIService: AIServiceProtocol, @unchecked Sendable {
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
             throw PeakError.aiServiceUnavailable
         }
 
-        struct GrokResponse: Decodable {
-            struct Choice: Decodable {
-                struct Message: Decodable { let content: String }
-                let message: Message
+        struct OpenAIResponse: Decodable {
+            struct Output: Decodable {
+                struct Content: Decodable {
+                    let type: String
+                    let text: String?
+                }
+                let type: String
+                let content: [Content]?
             }
             struct Usage: Decodable { let total_tokens: Int? }
-            let choices: [Choice]
+            let output: [Output]
             let usage: Usage?
         }
 
-        let decoded = try JSONDecoder().decode(GrokResponse.self, from: data)
-        let content = decoded.choices.first?.message.content ?? "I'm here to help. Could you rephrase that?"
+        let decoded = try JSONDecoder().decode(OpenAIResponse.self, from: data)
+        let content = decoded.output
+            .filter { $0.type == "message" }
+            .flatMap { $0.content ?? [] }
+            .first { $0.type == "output_text" }?
+            .text ?? "I'm here to help. Could you rephrase that?"
         let tokens = decoded.usage?.total_tokens ?? content.count / 4
 
-        return CoachResponse(content: content + "\n\n_This is wellness guidance, not medical advice._", tokenCount: tokens, usedGrokAPI: true)
+        let disclaimer = "This is wellness guidance, not medical advice."
+        let finalContent = content.localizedCaseInsensitiveContains(disclaimer)
+            ? content
+            : content + "\n\n_\(disclaimer)_"
+        return CoachResponse(content: finalContent, tokenCount: tokens, usedOpenAIAPI: true)
+    }
+
+    private var safetyIdentifier: String? {
+        guard let userID = keychain.read(for: .currentUserID), !userID.isEmpty else { return nil }
+        return SHA256.hash(data: Data(userID.utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
     }
 
     // MARK: - On-Device Fallback
@@ -178,7 +352,17 @@ final class AIService: AIServiceProtocol, @unchecked Sendable {
         let lower = message.lowercased()
         var response: String
 
-        if lower.contains("recovery") || lower.contains("score") {
+        if context.cycleTrackingEnabled && (lower.contains("cycle") || lower.contains("period") || lower.contains("cramp")) {
+            response = """
+            **Cycle-aware check-in**
+
+            \(context.cycleSummary.isEmpty ? "Keep logging cycle days and symptoms so patterns become clearer." : context.cycleSummary)
+
+            Gentle movement, comfortable heat, adequate sleep, and symptom tracking may help some people manage period discomfort. Adjust activity to how you feel today, especially with your **\(context.wellnessStatus)** status. Seek clinical care for severe or worsening pain, very heavy bleeding, fainting, or symptoms that interrupt normal activities.
+
+            _This is wellness guidance, not medical advice._
+            """
+        } else if lower.contains("recovery") || lower.contains("score") {
             response = """
             Your recovery score today is **\(context.todayRecoveryScore)** (\(context.recoveryLabel)).
 
@@ -245,7 +429,7 @@ final class AIService: AIServiceProtocol, @unchecked Sendable {
             """
         }
 
-        return CoachResponse(content: response, tokenCount: response.count / 4, usedGrokAPI: false)
+        return CoachResponse(content: response, tokenCount: response.count / 4, usedOpenAIAPI: false)
     }
 
     private func buildContextBlock(_ context: CoachContext) -> String {
@@ -258,6 +442,9 @@ final class AIService: AIServiceProtocol, @unchecked Sendable {
         Mood: \(context.moodRating > 0 ? "\(context.moodRating)/5" : "not logged")
         Goals: \(context.goals)
         Trend: \(context.recentTrend)
+        Selected daily status: \(context.wellnessStatus)
+        Cycle tracking enabled: \(context.cycleTrackingEnabled)
+        Cycle context: \(context.cycleSummary.isEmpty ? "not supplied" : context.cycleSummary)
         """
     }
 

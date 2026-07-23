@@ -39,20 +39,19 @@ public struct PeakChipStyle: ButtonStyle {
         #endif
     }
 
-    private func backgroundColor(configuration: Configuration) -> some ShapeStyle {
-        // Prefer PeakTheme colors when available
+    private func backgroundColor(configuration: Configuration) -> AnyShapeStyle {
         if isSelected {
-            return (PeakTheme.teal.opacity(0.15) as any ShapeStyle)
+            return AnyShapeStyle(PeakTheme.teal.opacity(0.15))
         } else {
-            return (PeakTheme.surfaceElevated as any ShapeStyle)
+            return AnyShapeStyle(PeakTheme.surfaceElevated)
         }
     }
 
-    private func foregroundColor(configuration: Configuration) -> some ShapeStyle {
+    private func foregroundColor(configuration: Configuration) -> AnyShapeStyle {
         if isSelected {
-            return (PeakTheme.teal as any ShapeStyle)
+            return AnyShapeStyle(PeakTheme.teal)
         } else {
-            return (PeakTheme.textSecondary as any ShapeStyle)
+            return AnyShapeStyle(PeakTheme.textSecondary)
         }
     }
 

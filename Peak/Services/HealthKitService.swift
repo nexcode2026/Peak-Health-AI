@@ -10,18 +10,33 @@ protocol HealthKitServiceProtocol: Sendable {
     func fetchDailyMetrics(for date: Date) async -> DailyHealthMetrics
     func enableBackgroundDelivery() async throws
     func fetchSleepSummary(days: Int) async -> [DailyHealthMetrics]
+    func writeHydration(ml: Int, date: Date) async throws
 }
 
 struct DailyHealthMetrics: Sendable {
     var date: Date = Date().startOfDay
     var sleepHours: Double = 0
     var sleepQuality: Double = 0
+    var deepSleepMinutes: Double = 0
+    var remSleepMinutes: Double = 0
     var hrvMS: Double = 0
     var restingHeartRate: Double = 0
+    var avgHeartRate: Double = 0
     var hrvTrend: Double = 0
     var steps: Int = 0
     var activeEnergyKcal: Double = 0
+    var exerciseMinutes: Double = 0
     var workoutMinutes: Double = 0
+    var dietaryCalories: Double = 0
+    var dietaryProtein: Double = 0
+    var bodyMassKg: Double = 0
+    var heightCm: Double = 0
+    var vo2Max: Double = 0
+    var respiratoryRate: Double = 0
+    var oxygenSaturation: Double = 0
+    var bloodPressureSystolic: Double = 0
+    var bloodPressureDiastolic: Double = 0
+    var bodyTemperatureC: Double = 0
     var strainBalance: Double = 0.7
 }
 
@@ -39,6 +54,19 @@ final class HealthKitService: HealthKitServiceProtocol, @unchecked Sendable {
         if let steps = HKQuantityType.quantityType(forIdentifier: .stepCount) { types.insert(steps) }
         if let energy = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned) { types.insert(energy) }
         if let exercise = HKQuantityType.quantityType(forIdentifier: .appleExerciseTime) { types.insert(exercise) }
+        if let vo2 = HKQuantityType.quantityType(forIdentifier: .vo2Max) { types.insert(vo2) }
+        if let resp = HKQuantityType.quantityType(forIdentifier: .respiratoryRate) { types.insert(resp) }
+        if let spo2 = HKQuantityType.quantityType(forIdentifier: .oxygenSaturation) { types.insert(spo2) }
+        if let mass = HKQuantityType.quantityType(forIdentifier: .bodyMass) { types.insert(mass) }
+        if let height = HKQuantityType.quantityType(forIdentifier: .height) { types.insert(height) }
+        if let systolic = HKQuantityType.quantityType(forIdentifier: .bloodPressureSystolic) { types.insert(systolic) }
+        if let diastolic = HKQuantityType.quantityType(forIdentifier: .bloodPressureDiastolic) { types.insert(diastolic) }
+        if let temperature = HKQuantityType.quantityType(forIdentifier: .bodyTemperature) { types.insert(temperature) }
+        if let basalTemperature = HKQuantityType.quantityType(forIdentifier: .basalBodyTemperature) { types.insert(basalTemperature) }
+        if let menstrualFlow = HKObjectType.categoryType(forIdentifier: .menstrualFlow) { types.insert(menstrualFlow) }
+        if let cal = HKQuantityType.quantityType(forIdentifier: .dietaryEnergyConsumed) { types.insert(cal) }
+        if let protein = HKQuantityType.quantityType(forIdentifier: .dietaryProtein) { types.insert(protein) }
+        if let water = HKQuantityType.quantityType(forIdentifier: .dietaryWater) { types.insert(water) }
         types.insert(HKObjectType.workoutType())
         return types
     }()
@@ -52,15 +80,16 @@ final class HealthKitService: HealthKitServiceProtocol, @unchecked Sendable {
 
     var isAvailable: Bool { HKHealthStore.isHealthDataAvailable() }
 
+    /// HealthKit does not expose read-authorization status reliably — track whether we've requested access.
     var isAuthorized: Bool {
         guard isAvailable else { return false }
-        guard let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) else { return false }
-        return store.authorizationStatus(for: stepType) == .sharingAuthorized
+        return HealthKitAuthStorage.hasRequested
     }
 
     func requestAuthorization() async throws {
         guard isAvailable else { throw PeakError.healthKitNotAvailable }
         try await store.requestAuthorization(toShare: writeTypes, read: readTypes)
+        HealthKitAuthStorage.hasRequested = true
         PeakLogger.healthKit.info("HealthKit authorization requested")
     }
 
@@ -80,24 +109,55 @@ final class HealthKitService: HealthKitServiceProtocol, @unchecked Sendable {
 
     func fetchDailyMetrics(for date: Date) async -> DailyHealthMetrics {
         guard isAvailable else { return DailyHealthMetrics(date: date) }
+        if !HealthKitAuthStorage.hasRequested {
+            try? await requestAuthorization()
+        }
 
         async let sleep = fetchSleep(for: date)
         async let hrv = fetchAverageQuantity(.heartRateVariabilitySDNN, unit: .secondUnit(with: .milli), date: date)
         async let rhr = fetchAverageQuantity(.restingHeartRate, unit: .count().unitDivided(by: .minute()), date: date)
+        async let avgHR = fetchAverageQuantity(.heartRate, unit: .count().unitDivided(by: .minute()), date: date)
         async let steps = fetchSumQuantity(.stepCount, unit: .count(), date: date)
         async let energy = fetchSumQuantity(.activeEnergyBurned, unit: .kilocalorie(), date: date)
+        async let exercise = fetchSumQuantity(.appleExerciseTime, unit: .minute(), date: date)
         async let hrvTrend = fetchHRVTrend(around: date)
+        async let dietaryCal = fetchSumQuantity(.dietaryEnergyConsumed, unit: .kilocalorie(), date: date)
+        async let dietaryProt = fetchSumQuantity(.dietaryProtein, unit: .gram(), date: date)
+        async let bodyMass = fetchLatestQuantity(.bodyMass, unit: .gramUnit(with: .kilo))
+        async let height = fetchLatestQuantity(.height, unit: .meterUnit(with: .centi))
+        async let vo2 = fetchLatestQuantity(.vo2Max, unit: HKUnit.literUnit(with: .milli).unitDivided(by: .gramUnit(with: .kilo).unitMultiplied(by: .minute())))
+        async let respRate = fetchAverageQuantity(.respiratoryRate, unit: .count().unitDivided(by: .minute()), date: date)
+        async let spo2 = fetchAverageQuantity(.oxygenSaturation, unit: .percent(), date: date)
+        async let systolic = fetchAverageQuantity(.bloodPressureSystolic, unit: .millimeterOfMercury(), date: date)
+        async let diastolic = fetchAverageQuantity(.bloodPressureDiastolic, unit: .millimeterOfMercury(), date: date)
+        async let temperature = fetchAverageQuantity(.bodyTemperature, unit: .degreeCelsius(), date: date)
+        async let workoutMins = fetchWorkoutMinutes(for: date)
 
         let sleepData = await sleep
         return DailyHealthMetrics(
             date: date,
             sleepHours: sleepData.hours,
             sleepQuality: sleepData.quality,
+            deepSleepMinutes: sleepData.deep,
+            remSleepMinutes: sleepData.rem,
             hrvMS: await hrv,
             restingHeartRate: await rhr,
+            avgHeartRate: await avgHR,
             hrvTrend: await hrvTrend,
             steps: Int(await steps),
             activeEnergyKcal: await energy,
+            exerciseMinutes: await exercise,
+            workoutMinutes: await workoutMins,
+            dietaryCalories: await dietaryCal,
+            dietaryProtein: await dietaryProt,
+            bodyMassKg: await bodyMass,
+            heightCm: await height,
+            vo2Max: await vo2,
+            respiratoryRate: await respRate,
+            oxygenSaturation: await spo2 * 100,
+            bloodPressureSystolic: await systolic,
+            bloodPressureDiastolic: await diastolic,
+            bodyTemperatureC: await temperature,
             strainBalance: calculateStrainBalance(steps: Int(await steps), energy: await energy)
         )
     }
@@ -114,9 +174,32 @@ final class HealthKitService: HealthKitServiceProtocol, @unchecked Sendable {
 
     // MARK: - Private Queries
 
-    private func fetchSleep(for date: Date) async -> (hours: Double, quality: Double) {
+    private func fetchLatestQuantity(_ identifier: HKQuantityTypeIdentifier, unit: HKUnit) async -> Double {
+        guard let type = HKQuantityType.quantityType(forIdentifier: identifier) else { return 0 }
+        return await withCheckedContinuation { continuation in
+            let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+            let query = HKSampleQuery(sampleType: type, predicate: nil, limit: 1, sortDescriptors: [sort]) { _, samples, _ in
+                let value = (samples?.first as? HKQuantitySample)?.quantity.doubleValue(for: unit) ?? 0
+                continuation.resume(returning: value)
+            }
+            store.execute(query)
+        }
+    }
+
+    private func fetchWorkoutMinutes(for date: Date) async -> Double {
+        let predicate = HKQuery.predicateForSamples(withStart: date.startOfDay, end: date.endOfDay)
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: .workoutType(), predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, _ in
+                let total = (samples as? [HKWorkout])?.reduce(0.0) { $0 + $1.duration / 60 } ?? 0
+                continuation.resume(returning: total)
+            }
+            store.execute(query)
+        }
+    }
+
+    private func fetchSleep(for date: Date) async -> (hours: Double, quality: Double, deep: Double, rem: Double) {
         guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
-            return (0, 0)
+            return (0, 0, 0, 0)
         }
 
         let start = date.startOfDay
@@ -127,12 +210,12 @@ final class HealthKitService: HealthKitServiceProtocol, @unchecked Sendable {
             let query = HKSampleQuery(sampleType: sleepType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
                 if let error {
                     PeakLogger.healthKit.error("Sleep query failed: \(error.localizedDescription)")
-                    continuation.resume(returning: (0, 0))
+                    continuation.resume(returning: (0, 0, 0, 0))
                     return
                 }
 
                 guard let samples = samples as? [HKCategorySample] else {
-                    continuation.resume(returning: (0, 0))
+                    continuation.resume(returning: (0, 0, 0, 0))
                     return
                 }
 
@@ -158,7 +241,7 @@ final class HealthKitService: HealthKitServiceProtocol, @unchecked Sendable {
                 let quality = asleepMinutes > 0
                     ? min(1, (deepMinutes + remMinutes) / asleepMinutes * 1.5)
                     : 0
-                continuation.resume(returning: (hours, quality))
+                continuation.resume(returning: (hours, quality, deepMinutes, remMinutes))
             }
             store.execute(query)
         }

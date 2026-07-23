@@ -5,16 +5,16 @@ import SwiftData
 
 @Model
 final class JournalEntry {
-    var id: UUID
-    var date: Date
-    var title: String?
-    var body: String
-    @Relationship(inverse: \MoodReflection.journalEntry)
-    var moodReflection: MoodReflection?
-    var photoAssetIdentifier: String?
-    var isPinned: Bool
-    var createdAt: Date
-    var updatedAt: Date
+    var id: UUID = UUID()
+    var date: Date = Date()
+    var title: String? = nil
+    var body: String = ""
+    @Relationship(deleteRule: .nullify, inverse: \MoodReflection.journalEntry)
+    var moodReflection: MoodReflection? = nil
+    var photoAssetIdentifier: String? = nil
+    var isPinned: Bool = false
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
 
     init(title: String? = nil, body: String, date: Date = Date()) {
         self.id = UUID()

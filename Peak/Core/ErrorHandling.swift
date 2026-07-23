@@ -40,7 +40,7 @@ enum PeakError: LocalizedError, Equatable {
         case .aiRateLimitExceeded:
             return "You've reached your AI message limit. Upgrade to Premium for more."
         case .aiAPIKeyMissing:
-            return "Connect your xAI API key in Settings to use advanced coaching."
+            return "Connect your OpenAI API key in Settings to use advanced coaching."
         case .exportFailed(let detail):
             return "Export failed: \(detail)"
         case .dataNotFound:

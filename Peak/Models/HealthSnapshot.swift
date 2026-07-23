@@ -5,18 +5,18 @@ import SwiftData
 
 @Model
 final class HealthSnapshot {
-    var id: UUID
-    var date: Date
-    var sleepHours: Double
-    var sleepQuality: Double // 0-1 derived from stages
-    var hrvMS: Double
-    var restingHeartRate: Double
-    var steps: Int
-    var activeEnergyKcal: Double
-    var workoutMinutes: Double
-    var deepSleepMinutes: Double
-    var remSleepMinutes: Double
-    var syncedAt: Date
+    var id: UUID = UUID()
+    var date: Date = Date()
+    var sleepHours: Double = 0
+    var sleepQuality: Double = 0 // 0-1 derived from stages
+    var hrvMS: Double = 0
+    var restingHeartRate: Double = 0
+    var steps: Int = 0
+    var activeEnergyKcal: Double = 0
+    var workoutMinutes: Double = 0
+    var deepSleepMinutes: Double = 0
+    var remSleepMinutes: Double = 0
+    var syncedAt: Date = Date()
 
     init(
         date: Date = Date().startOfDay,

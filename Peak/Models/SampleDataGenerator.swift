@@ -95,20 +95,96 @@ enum SampleDataGenerator {
             context.insert(achievement)
         }
 
+        // Food logs
+        let meals: [(String, MealType, Int)] = [
+            ("Oatmeal & Berries", .breakfast, 320),
+            ("Chicken Salad", .lunch, 450),
+            ("Protein Shake", .snack, 180),
+            ("Salmon & Rice", .dinner, 580),
+        ]
+        for (name, meal, cal) in meals {
+            let food = FoodLog(name: name, mealType: meal, calories: cal, proteinG: Double(cal) / 15)
+            context.insert(food)
+        }
+
+        // Workout logs
+        let workouts: [(WorkoutType, Double)] = [(.running, 35), (.strength, 45), (.yoga, 30)]
+        for (type, mins) in workouts {
+            let w = WorkoutLog(name: type.displayName, workoutType: type, durationMinutes: mins, caloriesBurned: type.kcalPerMinute * mins)
+            context.insert(w)
+        }
+
+        profile.bio = "Chasing peak performance, one habit at a time."
+        profile.heightCm = 175
+        profile.weightKg = 72
+        profile.dailyCalorieGoal = 2400
+        profile.dailyProteinGoalG = 140
+        profile.weeklyWorkoutGoal = 5
+
+        AchievementService.ensureAllAchievementsExist(modelContext: context)
+        AchievementService.evaluateAll(modelContext: context)
+
         profile.sampleDataLoaded = true
         try? context.save()
     }
 
     @MainActor
     static func previewContainer() -> ModelContainer {
-        let schema = Schema(PeakSchema.allModels)
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(for: schema, configurations: config)
+        let config = ModelConfiguration(isStoredInMemoryOnly: true, cloudKitDatabase: .none)
+
+        if let container = try? ModelContainer(
+            for: Schema(versionedSchema: PeakSchemaV1.self),
+            migrationPlan: PeakMigrationPlan.self,
+            configurations: [config]
+        ) {
+            return seedPreviewData(in: container)
+        }
+
+        if let container = try? ModelContainer(
+            for: Schema(PeakSchema.allModels),
+            configurations: [config]
+        ) {
+            return seedPreviewData(in: container)
+        }
+
+        // Canvas fallback — minimal in-memory store.
+        guard let fallback = try? ModelContainer(
+            for: Schema([UserProfile.self]),
+            configurations: [config]
+        ) else {
+            PeakLogger.cloudKit.fault("Preview ModelContainer creation failed.")
+            return seedPreviewData(in: minimalPreviewContainer(config: config))
+        }
+        return seedPreviewData(in: fallback)
+    }
+
+    @MainActor
+    private static func minimalPreviewContainer(config: ModelConfiguration) -> ModelContainer {
+        // Canvas-only fallback; app launch never calls this path.
+        if let container = try? ModelContainer(for: Schema([UserProfile.self]), configurations: [config]) {
+            return container
+        }
+        PeakLogger.cloudKit.fault("Preview minimal ModelContainer failed — returning empty in-memory shell.")
+        return (try? ModelContainer(
+            for: Schema([UserProfile.self]),
+            configurations: [ModelConfiguration(isStoredInMemoryOnly: true, cloudKitDatabase: .none)]
+        )) ?? {
+            fatalError("Peak preview could not create any ModelContainer. Check @Model definitions in PeakSchema.")
+        }()
+    }
+
+    @MainActor
+    private static func seedPreviewData(in container: ModelContainer) -> ModelContainer {
         let context = container.mainContext
-        let profile = UserProfile(appleUserID: "preview-user", displayName: "Alex Peak")
-        profile.onboardingCompleted = true
-        context.insert(profile)
-        populate(context: context, profile: profile)
+        if (try? context.fetch(FetchDescriptor<UserProfile>()).first) == nil {
+            let profile = UserProfile(appleUserID: "preview-user", displayName: "Alex Peak")
+            profile.onboardingCompleted = true
+            profile.dateOfBirth = Calendar.current.date(byAdding: .year, value: -28, to: Date())
+            profile.gender = GenderOption.male.rawValue
+            profile.activityLevel = ActivityLevel.active.rawValue
+            context.insert(profile)
+            populate(context: context, profile: profile)
+        }
         return container
     }
 }
@@ -128,5 +204,8 @@ enum PeakSchema {
         CoachMessage.self,
         AIUsageRecord.self,
         SubscriptionStateRecord.self,
+        FoodLog.self,
+        WorkoutLog.self,
+        CycleEntry.self,
     ]
 }

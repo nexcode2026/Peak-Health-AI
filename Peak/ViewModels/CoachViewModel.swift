@@ -28,7 +28,7 @@ final class CoachViewModel {
             sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
         )).first {
             conversation = existing
-            messages = existing.messages.sorted { $0.createdAt < $1.createdAt }
+            messages = (existing.messages ?? []).sorted { $0.createdAt < $1.createdAt }
         } else {
             let newConvo = CoachConversation(title: "Peak Coach")
             modelContext.insert(newConvo)
@@ -94,8 +94,22 @@ final class CoachViewModel {
     private func buildContext(modelContext: ModelContext) -> CoachContext {
         var context = CoachContext()
         if let profile = try? modelContext.fetch(FetchDescriptor<UserProfile>()).first {
+            let units = UnitFormatter(system: UnitSystem(preferredUnits: profile.preferredUnits))
             context.displayName = profile.displayName
-            context.goals = "Recovery target: \(profile.recoveryTarget), Water: \(profile.dailyWaterGoalML)ml, Sleep: \(profile.sleepHoursTarget)h"
+            context.goals = "Recovery target: \(profile.recoveryTarget), Water: \(units.formatWater(profile.dailyWaterGoalML)), Sleep: \(profile.sleepHoursTarget)h"
+            context.allowsOpenAI = profile.useOpenAIAPI
+            context.wellnessStatus = profile.wellnessStatus.title
+            if profile.genderOption == .female && profile.cycleTrackingEnabled {
+                let entries = (try? modelContext.fetch(FetchDescriptor<CycleEntry>(sortBy: [SortDescriptor(\.date, order: .reverse)]))) ?? []
+                let summary = CycleTrackingSummary.make(
+                    entries: entries,
+                    averageCycleLength: profile.averageCycleLength,
+                    periodLength: profile.averagePeriodLength
+                )
+                context.cycleTrackingEnabled = true
+                context.cycleSummary = summary.cycleDay.map { "Estimated cycle day \($0); \(summary.phase)." }
+                    ?? "No period start has been logged yet."
+            }
         }
 
         let today = Date().startOfDay

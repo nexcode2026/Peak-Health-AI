@@ -17,8 +17,7 @@ struct DisclaimerBanner: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(PeakTheme.Spacing.sm)
-        .background(PeakTheme.surfaceElevated.opacity(0.5))
-        .clipShape(RoundedRectangle(cornerRadius: PeakTheme.Radius.sm))
+        .glassCard(cornerRadius: PeakTheme.Radius.sm, tint: PeakTheme.gold.opacity(0.035))
         .accessibilityLabel(PeakConstants.medicalDisclaimer)
     }
 }

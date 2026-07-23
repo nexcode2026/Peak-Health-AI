@@ -5,18 +5,18 @@ import SwiftData
 
 @Model
 final class HabitDefinition {
-    var id: UUID
-    var name: String
-    var icon: String // SF Symbol name
-    var colorHex: String
-    var isCustom: Bool
-    var isActive: Bool
-    var sortOrder: Int
-    var createdAt: Date
-    var owner: UserProfile?
+    var id: UUID = UUID()
+    var name: String = ""
+    var icon: String = "checkmark.circle" // SF Symbol name
+    var colorHex: String = "FF6B4A"
+    var isCustom: Bool = false
+    var isActive: Bool = true
+    var sortOrder: Int = 0
+    var createdAt: Date = Date()
+    var owner: UserProfile? = nil
 
     @Relationship(deleteRule: .cascade, inverse: \HabitLog.habit)
-    var logs: [HabitLog]
+    var logs: [HabitLog]? = []
 
     init(
         name: String,
@@ -41,12 +41,12 @@ final class HabitDefinition {
 
 @Model
 final class HabitLog {
-    var id: UUID
-    var date: Date
-    var completed: Bool
-    var note: String?
-    var createdAt: Date
-    var habit: HabitDefinition?
+    var id: UUID = UUID()
+    var date: Date = Date()
+    var completed: Bool = true
+    var note: String? = nil
+    var createdAt: Date = Date()
+    var habit: HabitDefinition? = nil
 
     init(habit: HabitDefinition, date: Date = Date().startOfDay, completed: Bool = true, note: String? = nil) {
         self.id = UUID()

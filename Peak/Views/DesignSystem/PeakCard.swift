@@ -12,8 +12,7 @@ struct PeakCard<Content: View>: View {
     var body: some View {
         content
             .padding(padding)
-            .background(PeakTheme.surface)
-            .clipShape(RoundedRectangle(cornerRadius: PeakTheme.Radius.lg))
-            .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
+            .glassCard(cornerRadius: PeakTheme.Radius.lg, tint: PeakTheme.accent.opacity(0.025))
+            .shadow(color: PeakTheme.midnight.opacity(0.14), radius: 20, y: 10)
     }
 }

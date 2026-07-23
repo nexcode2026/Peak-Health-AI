@@ -2,15 +2,165 @@ import Foundation
 import SwiftData
 import SwiftUI
 
+struct HealthTrendSample: Identifiable, Sendable {
+    var id: Date { date }
+    let date: Date
+    let recovery: Double
+    let sleepHours: Double?
+    let hydrationRate: Double?
+    let mood: Double?
+    let habitRate: Double?
+}
+
+enum RecoveryDriver: String, CaseIterable, Identifiable, Sendable {
+    case sleep = "Sleep"
+    case hydration = "Hydration"
+    case mood = "Mood"
+    case habits = "Habits"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .sleep: "moon.fill"
+        case .hydration: "drop.fill"
+        case .mood: "face.smiling.fill"
+        case .habits: "checkmark.circle.fill"
+        }
+    }
+}
+
+struct DriverCorrelation: Identifiable, Sendable {
+    var id: RecoveryDriver { driver }
+    let driver: RecoveryDriver
+    let coefficient: Double
+    let sampleCount: Int
+
+    var strengthLabel: String {
+        switch abs(coefficient) {
+        case 0.7...: "Strong"
+        case 0.4..<0.7: "Moderate"
+        case 0.2..<0.4: "Emerging"
+        default: "Weak"
+        }
+    }
+}
+
+struct RecoveryZoneCount: Identifiable, Sendable {
+    let id: String
+    let count: Int
+    let lowerBound: Int
+}
+
+struct HealthAnalyticsSummary: Sendable {
+    var trendDelta: Double?
+    var consistencyScore: Int?
+    var bestDay: HealthTrendSample?
+    var loggingStreak: Int = 0
+    var drivers: [DriverCorrelation] = []
+    var zones: [RecoveryZoneCount] = []
+}
+
+enum HealthAnalyticsEngine {
+    static func analyze(_ samples: [HealthTrendSample]) -> HealthAnalyticsSummary {
+        let sorted = samples.sorted { $0.date < $1.date }
+        guard !sorted.isEmpty else { return HealthAnalyticsSummary() }
+
+        var summary = HealthAnalyticsSummary()
+        summary.bestDay = sorted.max { $0.recovery < $1.recovery }
+        summary.loggingStreak = consecutiveDayStreak(dates: sorted.map(\.date))
+
+        if sorted.count >= 4 {
+            let midpoint = sorted.count / 2
+            let earlier = sorted[..<midpoint].map(\.recovery)
+            let recent = sorted[midpoint...].map(\.recovery)
+            summary.trendDelta = average(recent) - average(earlier)
+        }
+
+        if sorted.count >= 3 {
+            let values = sorted.map(\.recovery)
+            let mean = average(values)
+            let variance = values.reduce(0) { $0 + pow($1 - mean, 2) } / Double(values.count)
+            let standardDeviation = sqrt(variance)
+            summary.consistencyScore = Int((100 - standardDeviation * 2.5).clamped(to: 0...100))
+        }
+
+        let driverValues: [(RecoveryDriver, (HealthTrendSample) -> Double?)] = [
+            (.sleep, { $0.sleepHours }),
+            (.hydration, { $0.hydrationRate }),
+            (.mood, { $0.mood }),
+            (.habits, { $0.habitRate }),
+        ]
+        summary.drivers = driverValues.compactMap { driver, value in
+            let pairs = sorted.compactMap { sample -> (Double, Double)? in
+                guard let input = value(sample) else { return nil }
+                return (input, sample.recovery)
+            }
+            guard let coefficient = pearson(pairs: pairs) else { return nil }
+            return DriverCorrelation(driver: driver, coefficient: coefficient, sampleCount: pairs.count)
+        }
+        .sorted { abs($0.coefficient) > abs($1.coefficient) }
+
+        summary.zones = [
+            RecoveryZoneCount(id: "Peak", count: sorted.filter { $0.recovery >= 80 }.count, lowerBound: 80),
+            RecoveryZoneCount(id: "Good", count: sorted.filter { $0.recovery >= 60 && $0.recovery < 80 }.count, lowerBound: 60),
+            RecoveryZoneCount(id: "Easy", count: sorted.filter { $0.recovery >= 40 && $0.recovery < 60 }.count, lowerBound: 40),
+            RecoveryZoneCount(id: "Recover", count: sorted.filter { $0.recovery < 40 }.count, lowerBound: 0),
+        ]
+        return summary
+    }
+
+    static func pearson(pairs: [(Double, Double)]) -> Double? {
+        guard pairs.count >= 3 else { return nil }
+        let xMean = average(pairs.map { $0.0 })
+        let yMean = average(pairs.map { $0.1 })
+        let numerator = pairs.reduce(0) { $0 + ($1.0 - xMean) * ($1.1 - yMean) }
+        let xDenominator = sqrt(pairs.reduce(0) { $0 + pow($1.0 - xMean, 2) })
+        let yDenominator = sqrt(pairs.reduce(0) { $0 + pow($1.1 - yMean, 2) })
+        let denominator = xDenominator * yDenominator
+        guard denominator > 0 else { return nil }
+        return (numerator / denominator).clamped(to: -1...1)
+    }
+
+    static func consecutiveDayStreak(dates: [Date]) -> Int {
+        let calendar = Calendar.current
+        let days = Set(dates.map { $0.startOfDay })
+        guard var cursor = days.max() else { return 0 }
+        var streak = 0
+        while days.contains(cursor) {
+            streak += 1
+            guard let previous = calendar.date(byAdding: .day, value: -1, to: cursor) else { break }
+            cursor = previous.startOfDay
+        }
+        return streak
+    }
+
+    private static func average<C: Collection>(_ values: C) -> Double where C.Element == Double {
+        guard !values.isEmpty else { return 0 }
+        return values.reduce(0, +) / Double(values.count)
+    }
+}
+
 @MainActor
 @Observable
 final class InsightsViewModel {
+    struct InsightFinding: Identifiable {
+        enum Sentiment { case positive, attention, neutral }
+
+        let id: String
+        let icon: String
+        let title: String
+        let detail: String
+        let sentiment: Sentiment
+    }
+
     var recoveryScores: [RecoveryScore] = []
     var moodEntries: [MoodReflection] = []
     var achievements: [Achievement] = []
     var habitAdherence: [HabitAdherenceDay] = []
     var selectedRange: InsightRange = .twoWeeks
-    var personalizedInsights: [String] = []
+    var personalizedInsights: [InsightFinding] = []
+    var analytics = HealthAnalyticsSummary()
 
     enum InsightRange: String, CaseIterable {
         case week = "7D"
@@ -59,6 +209,17 @@ final class InsightsViewModel {
         ))) ?? []
 
         computeHabitAdherence(modelContext: modelContext, days: days)
+        analytics = HealthAnalyticsEngine.analyze(recoveryScores.map { score in
+            let factors = score.factors
+            return HealthTrendSample(
+                date: score.date,
+                recovery: Double(score.overallScore),
+                sleepHours: factors.sleepHours > 0 ? factors.sleepHours : nil,
+                hydrationRate: factors.hydrationGoalML > 0 ? factors.hydrationPercent : nil,
+                mood: factors.moodRating > 0 ? Double(factors.moodRating) : nil,
+                habitRate: factors.habitsTotal > 0 ? factors.habitCompletionRate : nil
+            )
+        })
         generateInsights()
     }
 
@@ -80,27 +241,56 @@ final class InsightsViewModel {
     private func generateInsights() {
         personalizedInsights = []
 
-        if let avg = averageRecovery {
-            personalizedInsights.append("Your average recovery is \(avg) over this period.")
+        if let delta = analytics.trendDelta {
+            let improving = delta >= 0
+            personalizedInsights.append(InsightFinding(
+                id: "trend",
+                icon: improving ? "chart.line.uptrend.xyaxis" : "chart.line.downtrend.xyaxis",
+                title: improving ? "Recovery is trending up" : "Recovery has softened",
+                detail: "Your recent average is \(String(format: "%.1f", abs(delta))) points \(improving ? "higher" : "lower") than the first half of this range.",
+                sentiment: improving ? .positive : .attention
+            ))
         }
 
-        if let sleepCorr = sleepRecoveryCorrelation {
-            if sleepCorr > 0.5 {
-                personalizedInsights.append("Strong link: better sleep correlates with higher recovery scores.")
-            }
+        if let strongest = analytics.drivers.first, abs(strongest.coefficient) >= 0.2 {
+            let positive = strongest.coefficient > 0
+            personalizedInsights.append(InsightFinding(
+                id: "driver-\(strongest.driver.id)",
+                icon: strongest.driver.icon,
+                title: "\(strongest.driver.rawValue) is your clearest signal",
+                detail: "\(strongest.strengthLabel) \(positive ? "positive" : "inverse") association across \(strongest.sampleCount) logged days. This is a pattern, not proof of cause.",
+                sentiment: positive ? .positive : .attention
+            ))
         }
 
-        if let moodAvg = averageMood {
-            personalizedInsights.append("Average mood: \(String(format: "%.1f", moodAvg))/5.")
+        if let consistency = analytics.consistencyScore {
+            personalizedInsights.append(InsightFinding(
+                id: "consistency",
+                icon: "waveform.path",
+                title: consistency >= 75 ? "Recovery is consistent" : "Your recovery varies",
+                detail: "Stability score \(consistency)/100. \(consistency >= 75 ? "Your recent routine is producing relatively steady days." : "Compare sleep timing, hydration, and training load around the highest and lowest days.")",
+                sentiment: consistency >= 75 ? .positive : .neutral
+            ))
         }
 
-        let unlocked = achievements.filter(\.isUnlocked).count
-        if unlocked > 0 {
-            personalizedInsights.append("You've unlocked \(unlocked) achievement\(unlocked == 1 ? "" : "s")!")
+        if !habitAdherence.isEmpty {
+            personalizedInsights.append(InsightFinding(
+                id: "habits",
+                icon: "checkmark.seal.fill",
+                title: "Habit adherence is \(Int(habitAdherenceRate * 100))%",
+                detail: habitAdherenceRate >= 0.75 ? "Your micro-habits are becoming a reliable recovery foundation." : "Choose one small habit to make nearly automatic before adding more.",
+                sentiment: habitAdherenceRate >= 0.75 ? .positive : .neutral
+            ))
         }
 
         if personalizedInsights.isEmpty {
-            personalizedInsights.append("Keep logging to unlock personalized insights.")
+            personalizedInsights.append(InsightFinding(
+                id: "more-data",
+                icon: "plus.circle.fill",
+                title: "Build your baseline",
+                detail: "Log at least four recovery days to unlock trends and three matching factor days to reveal drivers.",
+                sentiment: .neutral
+            ))
         }
     }
 
@@ -115,9 +305,15 @@ final class InsightsViewModel {
     }
 
     var sleepRecoveryCorrelation: Double? {
-        // Simplified correlation placeholder using available score variance
-        guard recoveryScores.count >= 5 else { return nil }
-        let high = recoveryScores.filter { $0.sleepScore > 70 }.count
-        return Double(high) / Double(recoveryScores.count)
+        analytics.drivers.first { $0.driver == .sleep }?.coefficient
+    }
+
+    var habitAdherenceRate: Double {
+        guard !habitAdherence.isEmpty else { return 0 }
+        return habitAdherence.map(\.rate).reduce(0, +) / Double(habitAdherence.count)
+    }
+
+    var dataCoverage: Double {
+        min(1, Double(recoveryScores.count) / Double(max(1, selectedRange.days)))
     }
 }

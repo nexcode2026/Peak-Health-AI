@@ -3,6 +3,7 @@ import StoreKit
 
 // MARK: - Subscription Service Protocol
 
+@MainActor
 protocol SubscriptionServiceProtocol: Sendable {
     var currentTier: SubscriptionTier { get }
     var status: SubscriptionStatus { get }
@@ -23,14 +24,13 @@ final class SubscriptionService: SubscriptionServiceProtocol {
     private(set) var products: [Product] = []
     private var updateTask: Task<Void, Never>?
 
-    init() {
-        updateTask = Task { await observeTransactionUpdates() }
-    }
+    init() {}
 
     func loadProducts() async {
+        startObservingTransactionsIfNeeded()
         do {
             products = try await Product.products(for: PeakConstants.Products.all)
-                .sorted { $0.price < $1.price }
+                .sorted { planRank($0.id) < planRank($1.id) }
             PeakLogger.subscription.info("Loaded \(self.products.count) products")
         } catch {
             PeakLogger.subscription.error("Product load failed: \(error.localizedDescription)")
@@ -99,9 +99,20 @@ final class SubscriptionService: SubscriptionServiceProtocol {
 
     private func tierForProduct(_ productID: String) -> SubscriptionTier {
         switch productID {
-        case PeakConstants.Products.proMonthly: return .pro
-        case PeakConstants.Products.premiumMonthly, PeakConstants.Products.premiumYearly: return .premium
+        case PeakConstants.Products.premiumWeekly,
+             PeakConstants.Products.premiumMonthly,
+             PeakConstants.Products.premiumYearly:
+            return .premium
         default: return .free
+        }
+    }
+
+    private func planRank(_ productID: String) -> Int {
+        switch productID {
+        case PeakConstants.Products.premiumWeekly: 0
+        case PeakConstants.Products.premiumMonthly: 1
+        case PeakConstants.Products.premiumYearly: 2
+        default: 3
         }
     }
 
@@ -110,6 +121,11 @@ final class SubscriptionService: SubscriptionServiceProtocol {
         case .unverified: throw PeakError.subscriptionFailed("Transaction verification failed")
         case .verified(let value): return value
         }
+    }
+
+    private func startObservingTransactionsIfNeeded() {
+        guard updateTask == nil else { return }
+        updateTask = Task { await observeTransactionUpdates() }
     }
 
     private func observeTransactionUpdates() async {

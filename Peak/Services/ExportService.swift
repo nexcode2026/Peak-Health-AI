@@ -15,6 +15,8 @@ protocol ExportServiceProtocol: Sendable {
 final class ExportService: ExportServiceProtocol {
     func exportCSV(modelContext: ModelContext) throws -> URL {
         var lines: [String] = ["type,date,value,detail"]
+        let profile = try? modelContext.fetch(FetchDescriptor<UserProfile>()).first
+        let units = UnitFormatter(system: UnitSystem(preferredUnits: profile?.preferredUnits ?? "metric"))
 
         let scores = try modelContext.fetch(FetchDescriptor<RecoveryScore>(sortBy: [SortDescriptor(\.date)]))
         for score in scores {
@@ -23,7 +25,7 @@ final class ExportService: ExportServiceProtocol {
 
         let hydration = try modelContext.fetch(FetchDescriptor<HydrationLog>(sortBy: [SortDescriptor(\.date)]))
         for log in hydration {
-            lines.append("hydration,\(log.date.ISO8601Format()),\(log.amountML),")
+            lines.append("hydration,\(log.date.ISO8601Format()),\"\(units.formatWater(log.amountML))\",\(log.beverage.displayName)")
         }
 
         let moods = try modelContext.fetch(FetchDescriptor<MoodReflection>(sortBy: [SortDescriptor(\.date)]))
@@ -35,6 +37,16 @@ final class ExportService: ExportServiceProtocol {
         for log in habitLogs {
             let name = log.habit?.name ?? "unknown"
             lines.append("habit,\(log.date.ISO8601Format()),\(log.completed ? 1 : 0),\(name)")
+        }
+
+        let cycleEntries = try modelContext.fetch(FetchDescriptor<CycleEntry>(sortBy: [SortDescriptor(\.date)]))
+        for entry in cycleEntries {
+            let symptoms = entry.symptoms.map(\.title).joined(separator: " · ")
+            let detail = [entry.flow.title + " flow", symptoms, entry.notes]
+                .filter { !$0.isEmpty }
+                .joined(separator: " · ")
+                .replacingOccurrences(of: "\"", with: "'")
+            lines.append("cycle,\(entry.date.ISO8601Format()),\(entry.isPeriodDay ? 1 : 0),\"\(detail)\"")
         }
 
         let csv = lines.joined(separator: "\n")
@@ -53,7 +65,7 @@ final class ExportService: ExportServiceProtocol {
 
         let avgScore = scores.isEmpty ? 0 : scores.map(\.overallScore).reduce(0, +) / scores.count
 
-        let pdfMeta = [
+        _ = [
             kCGPDFContextCreator: "Peak Health App",
             kCGPDFContextTitle: "Peak Recovery Report",
         ]

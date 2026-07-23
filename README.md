@@ -1,6 +1,6 @@
 # Peak
 
-**Peak** is a premium native iOS health, recovery, sleep, fitness, and lifestyle tracking app. Built with SwiftUI, SwiftData, CloudKit, HealthKit, StoreKit 2, and a hybrid AI coach (on-device + optional xAI Grok API).
+**Peak** is a premium native iOS health, recovery, sleep, fitness, and lifestyle tracking app. Built with SwiftUI, SwiftData, CloudKit, HealthKit, StoreKit 2, and a hybrid AI coach (on-device + optional OpenAI Responses API).
 
 > Peak is a wellness tool, not a medical device. It does not diagnose, treat, or prevent any condition.
 
@@ -40,7 +40,7 @@ Peak/
 │   ├── RecoveryScoringService # Weighted 0–100 recovery algorithm
 │   ├── AuthService            # Sign in with Apple
 │   ├── SubscriptionService    # StoreKit 2 subscriptions
-│   ├── AIService              # Grok API + on-device fallback
+│   ├── AIService              # OpenAI Responses API + on-device fallback
 │   ├── NotificationService    # Local + rich notification categories
 │   ├── ExportService          # CSV + PDF reports
 │   ├── BiometricAuthService   # Face ID / Touch ID
@@ -86,7 +86,7 @@ Peak/
 Enable these capabilities for App ID `com.peak.health`:
 
 - [ ] **Sign in with Apple**
-- [ ] **iCloud** → CloudKit → container `iCloud.com.peak.health`
+- [ ] **iCloud** → CloudKit → container `iCloud.com.nexcode.peak.health`
 - [ ] **HealthKit** (including background delivery)
 - [ ] **Push Notifications** (for remote reminders; local works without)
 - [ ] **In-App Purchase** (auto-renewable subscriptions)
@@ -103,17 +103,19 @@ Enable these capabilities for App ID `com.peak.health`:
 ### CloudKit Dashboard
 
 1. Open [CloudKit Console](https://icloud.developer.apple.com/)
-2. Select container `iCloud.com.peak.health`
-3. Deploy schema to Production before release
-4. SwiftData auto-generates record types from `@Model` classes
+2. Select container `iCloud.com.nexcode.peak.health`
+3. Run a development-signed build on a device signed into iCloud; SwiftData registers the development schema from the `@Model` classes
+4. Verify records in the Development environment
+5. Deploy the schema to Production before TestFlight or App Store distribution
 
-### xAI Grok API (Optional)
+### OpenAI Coach (Optional)
 
 Users can opt in via **Profile → Peak Coach AI**:
 
-1. Obtain API key from [x.ai](https://x.ai)
-2. Enter in app Settings (stored in Keychain, never in source code)
-3. Falls back to on-device rule-based coach when unavailable
+1. Obtain an API key from the [OpenAI platform](https://platform.openai.com/api-keys)
+2. Enter it in app Settings (stored in Keychain, never in source code)
+3. Explicitly enable OpenAI Coach; the app discloses that a compact wellness summary is sent with each request
+4. Peak falls back to its on-device rule-based coach when OpenAI is disabled or unavailable
 
 ## App Icon Guidance
 
@@ -158,10 +160,10 @@ Tests cover recovery scoring engine and subscription tier limits.
 
 ## Known Limitations
 
-- App icon is placeholder (metadata only in asset catalog)
+- Alternate app icons require the final App Store asset variants to be added to the target before release
 - CloudKit requires Apple Developer account + iCloud signed in on device
 - HealthKit data sparse in Simulator — use physical device or sample data
-- Grok API requires user-provided key (no bundled credentials)
+- OpenAI Coach requires a user-provided API key (no bundled credentials)
 - Photo attachments use local paths; full CKAsset upload is scaffolded via `photoAssetIdentifier`
 - Remote push requires APNs certificate configuration
 

@@ -5,14 +5,14 @@ import SwiftData
 
 @Model
 final class SubscriptionStateRecord {
-    var id: UUID
-    var tier: String // SubscriptionTier raw value
-    var status: String // SubscriptionStatus raw value
-    var productID: String?
-    var expirationDate: Date?
-    var isInGracePeriod: Bool
-    var isInBillingRetry: Bool
-    var lastVerified: Date
+    var id: UUID = UUID()
+    var tier: String = "free" // SubscriptionTier raw value
+    var status: String = "none" // SubscriptionStatus raw value
+    var productID: String? = nil
+    var expirationDate: Date? = nil
+    var isInGracePeriod: Bool = false
+    var isInBillingRetry: Bool = false
+    var lastVerified: Date = Date()
 
     init(tier: SubscriptionTier = .free, status: SubscriptionStatus = .none) {
         self.id = UUID()

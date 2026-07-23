@@ -1,4 +1,5 @@
 import Foundation
+import StoreKit
 import SwiftData
 import SwiftUI
 
@@ -16,6 +17,19 @@ final class AppContainer {
     let export: any ExportServiceProtocol
     let biometrics: any BiometricAuthServiceProtocol
     let keychain: KeychainService
+    let liveSync: HealthLiveSyncService
+    let healthData: HealthDataCoordinator
+    let cloudKitSync: CloudKitSyncService
+    private var workoutTrackerStorage: WorkoutTrackingService?
+
+    /// Badge unlocked during the latest evaluation — consumed by views for celebration UI.
+    var pendingAchievementUnlock: Achievement?
+    var workoutTracker: WorkoutTrackingService {
+        if let workoutTrackerStorage { return workoutTrackerStorage }
+        let service = WorkoutTrackingService()
+        workoutTrackerStorage = service
+        return service
+    }
 
     var currentTier: SubscriptionTier = .free
     var subscriptionStatus: SubscriptionStatus = .none
@@ -33,7 +47,11 @@ final class AppContainer {
         biometrics: (any BiometricAuthServiceProtocol)? = nil
     ) {
         self.keychain = KeychainService()
-        self.healthKit = healthKit ?? HealthKitService()
+        self.liveSync = HealthLiveSyncService()
+        let hk = healthKit ?? HealthKitService()
+        self.healthKit = hk
+        self.healthData = HealthDataCoordinator(healthKit: hk, liveSync: self.liveSync)
+        self.cloudKitSync = CloudKitSyncService()
         self.recoveryScoring = recoveryScoring ?? RecoveryScoringService()
         self.auth = auth ?? AuthService(keychain: self.keychain)
         self.subscription = subscription ?? SubscriptionService()
@@ -44,13 +62,48 @@ final class AppContainer {
     }
 
     func configure(modelContext: ModelContext) async {
-        await subscription.loadProducts()
-        await subscription.updateSubscriptionStatus()
-        currentTier = subscription.currentTier
-        subscriptionStatus = subscription.status
-
         if let profile = try? modelContext.fetch(FetchDescriptor<UserProfile>()).first {
             notifications.configure(profile: profile)
+        }
+
+        await healthData.refresh(modelContext: modelContext)
+        evaluateAchievements(modelContext: modelContext)
+
+        liveSync.onDataUpdated = { [weak self] in
+            guard let self else { return }
+            Task { @MainActor in
+                await self.healthData.refresh(modelContext: modelContext)
+                await self.calculateTodayRecovery(modelContext: modelContext)
+                self.evaluateAchievements(modelContext: modelContext)
+            }
+        }
+        // StoreKit and CloudKit can take an indeterminate amount of time on a new
+        // simulator, offline device, or signed-out iCloud account. They should
+        // enrich the session after launch, never hold the account gate hostage.
+        Task { [weak self] in
+            guard let self else { return }
+            await self.subscription.loadProducts()
+            await self.subscription.updateSubscriptionStatus()
+            self.currentTier = self.subscription.currentTier
+            self.subscriptionStatus = self.subscription.status
+            await self.cloudKitSync.refreshStatus()
+        }
+    }
+
+    func evaluateAchievements(modelContext: ModelContext) {
+        let unlocked = AchievementService.evaluateAll(modelContext: modelContext)
+        if let first = unlocked.first {
+            pendingAchievementUnlock = first
+        }
+    }
+
+    func startHealthLiveSync() async {
+        guard healthKit.isAvailable else { return }
+        if !HealthKitAuthStorage.hasRequested {
+            try? await healthKit.requestAuthorization()
+        }
+        if !liveSync.isLive {
+            await liveSync.startObserving()
         }
     }
 
@@ -59,8 +112,12 @@ final class AppContainer {
         do {
             if healthKit.isAvailable {
                 try await healthKit.enableBackgroundDelivery()
+                await startHealthLiveSync()
             }
+            await healthData.refresh(modelContext: modelContext)
             await calculateTodayRecovery(modelContext: modelContext)
+            evaluateAchievements(modelContext: modelContext)
+            await cloudKitSync.refreshStatus()
             syncStatus = .synced
         } catch {
             PeakLogger.general.error("Refresh failed: \(error.localizedDescription)")
@@ -109,17 +166,15 @@ final class AppContainer {
         var factors = RecoveryFactors()
         let today = Date().startOfDay
 
-        if healthKit.isAuthorized {
-            let health = await healthKit.fetchDailyMetrics(for: today)
-            factors.sleepHours = health.sleepHours
-            factors.sleepQuality = health.sleepQuality
-            factors.hrvMS = health.hrvMS
-            factors.restingHR = health.restingHeartRate
-            factors.steps = health.steps
-            factors.activeEnergyKcal = health.activeEnergyKcal
-            factors.hrvTrend = health.hrvTrend
-            factors.strainBalance = health.strainBalance
-        }
+        let health = healthData.mergedMetrics()
+        factors.sleepHours = health.sleepHours
+        factors.sleepQuality = health.sleepQuality
+        factors.hrvMS = health.hrvMS
+        factors.restingHR = health.restingHeartRate
+        factors.steps = health.steps
+        factors.activeEnergyKcal = health.activeEnergyKcal
+        factors.hrvTrend = health.hrvTrend
+        factors.strainBalance = health.strainBalance
 
         let hydrationDescriptor = FetchDescriptor<HydrationLog>(
             predicate: #Predicate { $0.date >= today }
@@ -163,7 +218,36 @@ enum SyncStatus: Equatable {
 // MARK: - Environment Key
 
 private struct AppContainerKey: EnvironmentKey {
-    @MainActor static var defaultValue: AppContainer { AppContainer() }
+    @MainActor static var defaultValue: AppContainer {
+        // PeakApp injects the real container before any feature view renders.
+        // Keep the default lightweight — never touch HealthKit, StoreKit, or location here.
+        AppContainer(
+            healthKit: UnavailableHealthKitService(),
+            subscription: InertSubscriptionService()
+        )
+    }
+}
+
+/// Placeholder used only when a view reads `appContainer` without injection (previews / miswired views).
+private struct UnavailableHealthKitService: HealthKitServiceProtocol {
+    var isAvailable: Bool { false }
+    var isAuthorized: Bool { false }
+    func requestAuthorization() async throws { throw PeakError.healthKitNotAvailable }
+    func fetchDailyMetrics(for date: Date) async -> DailyHealthMetrics { DailyHealthMetrics(date: date) }
+    func enableBackgroundDelivery() async throws {}
+    func fetchSleepSummary(days: Int) async -> [DailyHealthMetrics] { [] }
+    func writeHydration(ml: Int, date: Date) async throws {}
+}
+
+@MainActor
+private final class InertSubscriptionService: SubscriptionServiceProtocol {
+    var currentTier: SubscriptionTier { .free }
+    var status: SubscriptionStatus { .none }
+    var products: [Product] { [] }
+    func loadProducts() async {}
+    func purchase(_ product: Product) async throws -> Bool { false }
+    func restorePurchases() async throws {}
+    func updateSubscriptionStatus() async {}
 }
 
 extension EnvironmentValues {

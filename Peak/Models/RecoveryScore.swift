@@ -5,18 +5,18 @@ import SwiftData
 
 @Model
 final class RecoveryScore {
-    var id: UUID
-    var date: Date
-    var overallScore: Int
-    var sleepScore: Double
-    var hrvScore: Double
-    var activityScore: Double
-    var hydrationScore: Double
-    var moodScore: Double
-    var habitScore: Double
-    var explanation: String
-    var factorsJSON: String // JSON-encoded RecoveryFactors
-    var createdAt: Date
+    var id: UUID = UUID()
+    var date: Date = Date()
+    var overallScore: Int = 0
+    var sleepScore: Double = 0
+    var hrvScore: Double = 0
+    var activityScore: Double = 0
+    var hydrationScore: Double = 0
+    var moodScore: Double = 0
+    var habitScore: Double = 0
+    var explanation: String = ""
+    var factorsJSON: String = "{}" // JSON-encoded RecoveryFactors
+    var createdAt: Date = Date()
 
     init(
         date: Date = Date().startOfDay,
@@ -44,6 +44,7 @@ final class RecoveryScore {
         self.createdAt = Date()
     }
 
+    @Transient
     var factors: RecoveryFactors {
         guard let data = factorsJSON.data(using: .utf8),
               let decoded = try? JSONDecoder().decode(RecoveryFactors.self, from: data) else {

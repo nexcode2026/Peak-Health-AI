@@ -61,4 +61,57 @@ final class RecoveryScoringServiceTests: XCTestCase {
         let sum = w.sleep + w.hrvRestingHR + w.activityBalance + w.hydration + w.mood + w.habits
         XCTAssertEqual(sum, 1.0, accuracy: 0.001)
     }
+
+    func testHealthAnalyticsFindsPositiveCorrelation() {
+        let coefficient = HealthAnalyticsEngine.pearson(pairs: [
+            (4, 42),
+            (5, 50),
+            (6, 63),
+            (7, 72),
+            (8, 88),
+        ])
+
+        XCTAssertNotNil(coefficient)
+        XCTAssertGreaterThan(coefficient ?? 0, 0.95)
+    }
+
+    func testHealthAnalyticsFindsInverseCorrelation() {
+        let coefficient = HealthAnalyticsEngine.pearson(pairs: [
+            (1, 92),
+            (2, 80),
+            (3, 68),
+            (4, 55),
+            (5, 41),
+        ])
+
+        XCTAssertNotNil(coefficient)
+        XCTAssertLessThan(coefficient ?? 0, -0.95)
+    }
+
+    func testHealthAnalyticsSummarizesTrendAndStreak() {
+        let calendar = Calendar.current
+        let start = Date().startOfDay
+        let samples = (0..<6).map { offset in
+            HealthTrendSample(
+                date: calendar.date(byAdding: .day, value: offset, to: start)!,
+                recovery: Double(50 + offset * 7),
+                sleepHours: Double(5 + offset) * 0.5,
+                hydrationRate: Double(offset) / 5,
+                mood: Double(2 + min(offset, 3)),
+                habitRate: Double(offset) / 5
+            )
+        }
+
+        let summary = HealthAnalyticsEngine.analyze(samples)
+
+        XCTAssertEqual(summary.loggingStreak, 6)
+        XCTAssertGreaterThan(summary.trendDelta ?? 0, 0)
+        XCTAssertEqual(summary.bestDay?.recovery, 85)
+        XCTAssertFalse(summary.drivers.isEmpty)
+    }
+
+    func testPearsonRequiresEnoughVariableData() {
+        XCTAssertNil(HealthAnalyticsEngine.pearson(pairs: [(1, 2), (2, 4)]))
+        XCTAssertNil(HealthAnalyticsEngine.pearson(pairs: [(1, 2), (1, 3), (1, 4)]))
+    }
 }

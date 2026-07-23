@@ -4,6 +4,7 @@ import SwiftUI
 struct CoachView: View {
     @Environment(\.appContainer) private var container
     @Environment(\.modelContext) private var modelContext
+    @Query private var profiles: [UserProfile]
     @State private var viewModel = CoachViewModel()
 
     var body: some View {
@@ -26,8 +27,10 @@ struct CoachView: View {
                                 typingIndicator
                             }
                         }
-                        .padding(PeakTheme.Spacing.md)
+                        .padding(.horizontal, PeakTheme.Spacing.md)
+                        .peakContentInsets()
                     }
+                    .peakDismissKeyboardOnSwipe()
                     .onChange(of: viewModel.messages.count) { _, _ in
                         if let last = viewModel.messages.last {
                             withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
@@ -35,10 +38,13 @@ struct CoachView: View {
                     }
                 }
 
-                suggestionChips
-                inputBar
+                VStack(spacing: 0) {
+                    suggestionChips
+                    inputBar
+                }
+                .padding(.bottom, 88)
             }
-            .background(PeakTheme.background)
+            .peakScreenBackground()
             .navigationTitle("Peak Coach")
             .alert("Error", isPresented: .init(
                 get: { viewModel.error != nil },
@@ -56,7 +62,10 @@ struct CoachView: View {
 
     private var usageBar: some View {
         HStack {
-            Text("AI Messages: \(viewModel.usageCount)/\(viewModel.usageLimit)")
+            Label(coachEngineLabel, systemImage: coachEngineIcon)
+                .font(PeakTheme.Typography.micro)
+                .foregroundStyle(coachUsesOpenAI ? PeakTheme.ultraviolet : PeakTheme.accent)
+            Text("· \(viewModel.usageCount)/\(viewModel.usageLimit)")
                 .font(PeakTheme.Typography.micro)
                 .foregroundStyle(PeakTheme.textSecondary)
             Spacer()
@@ -69,6 +78,13 @@ struct CoachView: View {
         .padding(.horizontal, PeakTheme.Spacing.md)
         .padding(.top, PeakTheme.Spacing.xs)
     }
+
+    private var coachUsesOpenAI: Bool {
+        (profiles.first?.useOpenAIAPI ?? false) && container.keychain.read(for: .openAIAPIKey) != nil
+    }
+
+    private var coachEngineLabel: String { coachUsesOpenAI ? "OpenAI Coach" : "On-device Coach" }
+    private var coachEngineIcon: String { coachUsesOpenAI ? "sparkles" : "iphone.gen3" }
 
     private func messageBubble(_ message: CoachMessage) -> some View {
         let isUser = message.coachRole == .user
@@ -83,7 +99,7 @@ struct CoachView: View {
                 .background(
                     isUser
                         ? AnyShapeStyle(PeakTheme.accentGradient)
-                        : AnyShapeStyle(PeakTheme.surface)
+                        : AnyShapeStyle(.thinMaterial)
                 )
                 .clipShape(RoundedRectangle(cornerRadius: PeakTheme.Radius.lg))
 
@@ -103,8 +119,7 @@ struct CoachView: View {
                 }
             }
             .padding(PeakTheme.Spacing.md)
-            .background(PeakTheme.surface)
-            .clipShape(RoundedRectangle(cornerRadius: PeakTheme.Radius.lg))
+            .glassCard(cornerRadius: PeakTheme.Radius.lg, tint: PeakTheme.ultraviolet.opacity(0.035))
             Spacer()
         }
     }
@@ -121,8 +136,7 @@ struct CoachView: View {
                     .font(PeakTheme.Typography.caption)
                     .padding(.horizontal, PeakTheme.Spacing.sm)
                     .padding(.vertical, PeakTheme.Spacing.xs)
-                    .background(PeakTheme.surfaceElevated)
-                    .clipShape(Capsule())
+                    .glassCapsule(tint: PeakTheme.teal.opacity(0.12), interactive: true)
                     .foregroundStyle(PeakTheme.teal)
                 }
             }
@@ -136,8 +150,7 @@ struct CoachView: View {
             TextField("Ask Peak Coach...", text: $viewModel.inputText, axis: .vertical)
                 .lineLimit(1...4)
                 .padding(PeakTheme.Spacing.sm)
-                .background(PeakTheme.surface)
-                .clipShape(RoundedRectangle(cornerRadius: PeakTheme.Radius.md))
+                .glassCard(cornerRadius: PeakTheme.Radius.md, interactive: true)
 
             Button {
                 Task {
@@ -151,12 +164,13 @@ struct CoachView: View {
             .disabled(viewModel.inputText.trimmed.isEmpty || viewModel.isTyping)
         }
         .padding(PeakTheme.Spacing.md)
-        .background(PeakTheme.surfaceElevated)
+        .glassCard(cornerRadius: PeakTheme.Radius.lg)
+        .padding(.horizontal, PeakTheme.Spacing.sm)
+        .padding(.bottom, PeakTheme.Spacing.xs)
     }
 }
 
 #Preview {
     CoachView()
-        .modelContainer(SampleDataGenerator.previewContainer())
-        .environment(\.appContainer, AppContainer())
+        .peakPreviewShell()
 }

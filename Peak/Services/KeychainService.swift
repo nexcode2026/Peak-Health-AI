@@ -8,8 +8,13 @@ final class KeychainService: Sendable {
 
     enum Key: String {
         case grokAPIKey = "grok_api_key"
+        case openAIAPIKey = "openai_api_key"
         case appleUserID = "apple_user_id"
         case appleIdentityToken = "apple_identity_token"
+        case currentUserID = "current_user_id"
+        case authProvider = "auth_provider"
+        case emailAccounts = "email_accounts"
+        case googleIdentityToken = "google_identity_token"
     }
 
     func save(_ value: String, for key: Key) throws {
@@ -60,7 +65,10 @@ final class KeychainService: Sendable {
     }
 
     func deleteAll() {
-        for key in [Key.grokAPIKey, Key.appleUserID, Key.appleIdentityToken] {
+        for key in [
+            Key.grokAPIKey, .openAIAPIKey, .appleUserID, .appleIdentityToken, .currentUserID,
+            .authProvider, .emailAccounts, .googleIdentityToken,
+        ] {
             delete(for: key)
         }
     }
