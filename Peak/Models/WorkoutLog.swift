@@ -14,6 +14,7 @@ final class WorkoutLog {
     var distanceKm: Double = 0
     var avgHeartRate: Double = 0
     var intensity: String = "moderate" // low, moderate, high
+    var exerciseDetails: String = ""
     var note: String? = nil
     var isFromHealthKit: Bool = false
     var healthKitUUID: String? = nil
@@ -27,6 +28,7 @@ final class WorkoutLog {
         distanceKm: Double = 0,
         avgHeartRate: Double = 0,
         intensity: WorkoutIntensity = .moderate,
+        exerciseDetails: String = "",
         note: String? = nil,
         isFromHealthKit: Bool = false,
         date: Date = Date()
@@ -40,6 +42,7 @@ final class WorkoutLog {
         self.distanceKm = distanceKm
         self.avgHeartRate = avgHeartRate
         self.intensity = intensity.rawValue
+        self.exerciseDetails = exerciseDetails
         self.note = note
         self.isFromHealthKit = isFromHealthKit
         self.createdAt = Date()
@@ -49,7 +52,55 @@ final class WorkoutLog {
     var workoutIntensity: WorkoutIntensity { WorkoutIntensity(rawValue: intensity) ?? .moderate }
 }
 
-enum WorkoutType: String, CaseIterable, Codable, Identifiable {
+/// Lightweight, portable training templates. They intentionally live outside
+/// SwiftData so users can create and edit programming without changing the
+/// CloudKit health-data schema.
+struct TrainingTemplate: Identifiable, Codable, Hashable {
+    var id = UUID()
+    var name: String
+    var workoutType: WorkoutType
+    var durationMinutes: Double
+    var intensity: WorkoutIntensity
+    var exerciseDetails: String
+    var note: String
+
+    static let starter: [TrainingTemplate] = [
+        TrainingTemplate(
+            name: "Full Body Strength",
+            workoutType: .strength,
+            durationMinutes: 45,
+            intensity: .moderate,
+            exerciseDetails: "Squat · 3 × 8\nBench press · 3 × 8\nRow · 3 × 10\nRomanian deadlift · 3 × 8\nPlank · 3 × 45 sec",
+            note: "Rest 90–120 seconds between working sets."
+        ),
+        TrainingTemplate(
+            name: "Zone 2 Cardio",
+            workoutType: .cycling,
+            durationMinutes: 40,
+            intensity: .low,
+            exerciseDetails: "5 min easy warm-up\n30 min conversational pace\n5 min easy cool-down",
+            note: "Keep the effort controlled and sustainable."
+        ),
+    ]
+}
+
+enum TrainingTemplateStore {
+    static let key = "peak.training.templates.v1"
+
+    static func load(from data: Data) -> [TrainingTemplate] {
+        guard !data.isEmpty,
+              let templates = try? JSONDecoder().decode([TrainingTemplate].self, from: data) else {
+            return TrainingTemplate.starter
+        }
+        return templates
+    }
+
+    static func encode(_ templates: [TrainingTemplate]) -> Data {
+        (try? JSONEncoder().encode(templates)) ?? Data()
+    }
+}
+
+enum WorkoutType: String, CaseIterable, Codable, Identifiable, Hashable {
     case running, walking, cycling, strength, yoga, swimming, hiit, pilates, stretching, other
 
     var id: String { rawValue }
@@ -108,7 +159,7 @@ enum WorkoutType: String, CaseIterable, Codable, Identifiable {
     }
 }
 
-enum WorkoutIntensity: String, CaseIterable, Codable {
+enum WorkoutIntensity: String, CaseIterable, Codable, Hashable {
     case low, moderate, high
 
     var displayName: String { rawValue.capitalized }

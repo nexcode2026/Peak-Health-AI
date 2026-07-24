@@ -2,6 +2,16 @@ import Foundation
 import SwiftData
 import SwiftUI
 
+struct WellnessSignalDriver: Identifiable, Sendable {
+    let id: String
+    let title: String
+    let value: String
+    let detail: String
+    let impact: Double
+    let icon: String
+    let isSupportive: Bool
+}
+
 @MainActor
 @Observable
 final class DashboardViewModel {
@@ -281,6 +291,93 @@ final class DashboardViewModel {
         }
         if hydrationProgress < 0.5 { return "Hydration can lift your available energy" }
         return "Recovery, sleep, nutrition and routines combined"
+    }
+
+    var stressDrivers: [WellnessSignalDriver] {
+        let recovery = Double(todayScore?.overallScore ?? 50)
+        let sleepDeficit = max(0, 1 - sleepProgress)
+        let hydrationDeficit = max(0, 1 - hydrationProgress)
+        let nutritionDeficit = max(0, 1 - max(calorieProgress, proteinProgress))
+        let strainPressure = max(0, Double(strainPercent - 65)) * 0.30
+        let checkInPressure = loggedEnergyLevel.map { Double(max(0, 3 - $0)) * 6 } ?? 0
+        return [
+            WellnessSignalDriver(
+                id: "stress-recovery",
+                title: "Recovery",
+                value: "\(Int(recovery))/100",
+                detail: recovery >= 60 ? "Recovery is buffering daily load." : "Lower recovery raises today’s estimated pressure.",
+                impact: (50 - recovery) * 0.38,
+                icon: "heart.circle.fill",
+                isSupportive: recovery >= 60
+            ),
+            WellnessSignalDriver(
+                id: "stress-sleep",
+                title: "Sleep",
+                value: "\(Int(sleepProgress * 100))% of goal",
+                detail: sleepDeficit > 0.25 ? "Sleep debt is a leading pressure signal." : "Sleep duration is supporting resilience.",
+                impact: sleepDeficit * 20,
+                icon: "moon.zzz.fill",
+                isSupportive: sleepDeficit <= 0.25
+            ),
+            WellnessSignalDriver(
+                id: "stress-hydration",
+                title: "Hydration",
+                value: "\(Int(hydrationProgress * 100))% of goal",
+                detail: hydrationDeficit > 0.5 ? "Low logged hydration increases the estimate." : "Hydration is near your current target.",
+                impact: hydrationDeficit * 14,
+                icon: "drop.fill",
+                isSupportive: hydrationDeficit <= 0.5
+            ),
+            WellnessSignalDriver(
+                id: "stress-fuel",
+                title: "Nutrition",
+                value: "\(Int(max(calorieProgress, proteinProgress) * 100))% fueled",
+                detail: nutritionDeficit > 0.5 ? "Limited fuel data adds uncertainty and pressure." : "Logged nutrition is supporting the day.",
+                impact: nutritionDeficit * 8,
+                icon: "fork.knife",
+                isSupportive: nutritionDeficit <= 0.5
+            ),
+            WellnessSignalDriver(
+                id: "stress-training",
+                title: "Activity load",
+                value: "\(strainPercent) strain",
+                detail: strainPressure > 0 ? "Activity above the balanced zone adds load." : "Training load is within the balanced zone.",
+                impact: strainPressure,
+                icon: "figure.run",
+                isSupportive: strainPressure == 0
+            ),
+            WellnessSignalDriver(
+                id: "stress-check-in",
+                title: "Check-in",
+                value: loggedEnergyLevel.map { "Energy \($0)/5" } ?? "Not logged",
+                detail: loggedStressToday ? "Stress or restlessness was included in today’s check-in." : "A mood check-in makes this estimate more personal.",
+                impact: checkInPressure + (loggedStressToday ? 14 : 0),
+                icon: "face.smiling",
+                isSupportive: !loggedStressToday && checkInPressure == 0
+            ),
+            WellnessSignalDriver(
+                id: "stress-routine",
+                title: "Routine consistency",
+                value: "\(Int(recentRoutineConsistency * 100))%",
+                detail: "Consistent recent logging and routines provide a protective buffer.",
+                impact: -(recentRoutineConsistency * 10),
+                icon: "calendar.badge.checkmark",
+                isSupportive: true
+            ),
+        ]
+    }
+
+    var energyDrivers: [WellnessSignalDriver] {
+        let recovery = Double(todayScore?.overallScore ?? 50) / 100
+        let moodEnergy = loggedEnergyLevel.map { Double($0) / 5 } ?? 0.6
+        return [
+            WellnessSignalDriver(id: "energy-recovery", title: "Recovery", value: "\(Int(recovery * 100))/100", detail: "Recovery contributes up to 35 points.", impact: recovery * 35, icon: "heart.circle.fill", isSupportive: recovery >= 0.6),
+            WellnessSignalDriver(id: "energy-sleep", title: "Sleep", value: "\(Int(sleepProgress * 100))% of goal", detail: "Sleep contributes up to 20 points.", impact: sleepProgress * 20, icon: "moon.zzz.fill", isSupportive: sleepProgress >= 0.75),
+            WellnessSignalDriver(id: "energy-hydration", title: "Hydration", value: "\(Int(hydrationProgress * 100))% of goal", detail: "Hydration contributes up to 15 points.", impact: hydrationProgress * 15, icon: "drop.fill", isSupportive: hydrationProgress >= 0.5),
+            WellnessSignalDriver(id: "energy-fuel", title: "Nutrition", value: "\(Int(max(calorieProgress, proteinProgress) * 100))% fueled", detail: "Calories and protein contribute up to 10 points.", impact: max(calorieProgress, proteinProgress) * 10, icon: "fork.knife", isSupportive: max(calorieProgress, proteinProgress) >= 0.5),
+            WellnessSignalDriver(id: "energy-routine", title: "Routine", value: "\(Int(recentRoutineConsistency * 100))%", detail: "Recent consistency contributes up to 10 points.", impact: recentRoutineConsistency * 10, icon: "calendar.badge.checkmark", isSupportive: recentRoutineConsistency >= 0.6),
+            WellnessSignalDriver(id: "energy-check-in", title: "Check-in energy", value: loggedEnergyLevel.map { "\($0)/5" } ?? "Estimated", detail: loggedEnergyLevel == nil ? "Peak uses a neutral baseline until you check in." : "Your reported energy contributes up to 10 points.", impact: moodEnergy * 10, icon: "bolt.fill", isSupportive: moodEnergy >= 0.6),
+        ]
     }
 
     var dailyPlan: [DailyPlanItem] {

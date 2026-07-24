@@ -16,7 +16,7 @@ enum PeakTab: Int, CaseIterable, Identifiable {
         switch self {
         case .today: return "Today"
         case .journal: return "Journal"
-        case .trends: return "Trends"
+        case .trends: return "Fitness"
         case .coach: return "Coach"
         case .you: return "You"
         }
@@ -26,7 +26,7 @@ enum PeakTab: Int, CaseIterable, Identifiable {
         switch self {
         case .today: return "circle.hexagongrid.fill"
         case .journal: return "square.and.pencil"
-        case .trends: return "chart.line.uptrend.xyaxis"
+        case .trends: return "figure.strengthtraining.traditional"
         case .coach: return "sparkles"
         case .you: return "person.crop.circle"
         }
@@ -36,7 +36,7 @@ enum PeakTab: Int, CaseIterable, Identifiable {
         switch self {
         case .today: return "circle.hexagongrid.fill"
         case .journal: return "square.and.pencil"
-        case .trends: return "chart.line.uptrend.xyaxis"
+        case .trends: return "figure.strengthtraining.traditional"
         case .coach: return "sparkles"
         case .you: return "person.crop.circle.fill"
         }

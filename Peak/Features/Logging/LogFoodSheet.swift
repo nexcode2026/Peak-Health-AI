@@ -22,10 +22,23 @@ struct LogFoodSheet: View {
     @State private var analysisOverview = ""
     @State private var analysisSource: MealAnalysisSource = .manual
     @State private var errorMessage: String?
+    @State private var loggedAt: Date
+    @State private var saveAsSingleMeal = true
     let date: Date
+    let editingLog: FoodLog?
 
-    init(date: Date = .now) {
+    init(date: Date = .now, editingLog: FoodLog? = nil) {
         self.date = date
+        self.editingLog = editingLog
+        _loggedAt = State(initialValue: editingLog?.date ?? date)
+        _mealType = State(initialValue: editingLog?.meal ?? .lunch)
+        _note = State(initialValue: editingLog?.note ?? "")
+        if let editingLog {
+            _analysisTitle = State(initialValue: editingLog.name)
+            _analysisOverview = State(initialValue: "Review and update this saved nutrition entry.")
+            _analysisSource = State(initialValue: .manual)
+            _items = State(initialValue: [EditableMealItem(log: editingLog)])
+        }
     }
 
     var body: some View {
@@ -45,12 +58,12 @@ struct LogFoodSheet: View {
             }
             .peakDismissKeyboardOnSwipe()
             .peakScreenBackground()
-            .navigationTitle("AI Meal Log")
+            .navigationTitle(editingLog == nil ? "AI Meal Log" : "Edit Nutrition")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save Meal") { save() }
+                    Button(editingLog == nil ? "Save Meal" : "Update") { save() }
                         .disabled(items.isEmpty || items.allSatisfy { $0.name.trimmed.isEmpty })
                 }
             }
@@ -246,6 +259,20 @@ private extension LogFoodSheet {
             }
             .pickerStyle(.segmented)
 
+            PeakCard {
+                VStack(spacing: PeakTheme.Spacing.sm) {
+                    DatePicker("Meal time", selection: $loggedAt)
+                    if editingLog == nil, items.count > 1 {
+                        Toggle("Save foods together as one meal", isOn: $saveAsSingleMeal)
+                        Text(saveAsSingleMeal
+                             ? "Ingredients and nutrition will be combined into one editable meal."
+                             : "Each identified food will be saved as its own entry.")
+                            .font(PeakTheme.Typography.micro)
+                            .foregroundStyle(PeakTheme.textSecondary)
+                    }
+                }
+            }
+
             ForEach($items) { $item in
                 editableFoodCard(item: $item)
             }
@@ -301,6 +328,32 @@ private extension LogFoodSheet {
                 editableNumber("Carbs", value: item.carbsG, unit: "g")
                 editableNumber("Fat", value: item.fatG, unit: "g")
             }
+            DisclosureGroup("Complete nutrition details") {
+                VStack(spacing: PeakTheme.Spacing.sm) {
+                    HStack(spacing: PeakTheme.Spacing.sm) {
+                        editableNumber("Fiber", value: item.fiberG, unit: "g")
+                        editableNumber("Sugar", value: item.sugarG, unit: "g")
+                    }
+                    HStack(spacing: PeakTheme.Spacing.sm) {
+                        editableNumber("Saturated fat", value: item.saturatedFatG, unit: "g")
+                        editableNumber("Sodium", value: item.sodiumMg, unit: "mg")
+                    }
+                    editableNumber("Cholesterol", value: item.cholesterolMg, unit: "mg")
+                    TextField(
+                        "Ingredients, separated by commas",
+                        text: item.ingredients,
+                        axis: .vertical
+                    )
+                    .lineLimit(2...5)
+                    .padding(PeakTheme.Spacing.sm)
+                    .background(
+                        PeakTheme.surface.opacity(0.55),
+                        in: RoundedRectangle(cornerRadius: PeakTheme.Radius.sm)
+                    )
+                }
+                .padding(.top, PeakTheme.Spacing.xs)
+            }
+            .font(PeakTheme.Typography.caption)
         }
         .padding(PeakTheme.Spacing.md)
         .glassCard(cornerRadius: PeakTheme.Radius.lg, tint: color.opacity(0.055))
@@ -403,6 +456,11 @@ private extension LogFoodSheet {
     private var totalProtein: Double { items.reduce(0) { $0 + max(0, $1.proteinG) } }
     private var totalCarbs: Double { items.reduce(0) { $0 + max(0, $1.carbsG) } }
     private var totalFat: Double { items.reduce(0) { $0 + max(0, $1.fatG) } }
+    private var totalFiber: Double { items.reduce(0) { $0 + max(0, $1.fiberG) } }
+    private var totalSugar: Double { items.reduce(0) { $0 + max(0, $1.sugarG) } }
+    private var totalSaturatedFat: Double { items.reduce(0) { $0 + max(0, $1.saturatedFatG) } }
+    private var totalSodium: Double { items.reduce(0) { $0 + max(0, $1.sodiumMg) } }
+    private var totalCholesterol: Double { items.reduce(0) { $0 + max(0, $1.cholesterolMg) } }
 
     private func analyzeSearch() {
         guard !searchText.trimmed.isEmpty else { return }
@@ -460,6 +518,50 @@ private extension LogFoodSheet {
     }
 
     private func save() {
+        if let editingLog {
+            editingLog.name = items.count == 1
+                ? items[0].name.trimmed
+                : (analysisTitle.trimmed.isEmpty ? "Custom Meal" : analysisTitle.trimmed)
+            editingLog.mealType = mealType.rawValue
+            editingLog.calories = totalCalories
+            editingLog.proteinG = totalProtein
+            editingLog.carbsG = totalCarbs
+            editingLog.fatG = totalFat
+            editingLog.fiberG = totalFiber
+            editingLog.sugarG = totalSugar
+            editingLog.saturatedFatG = totalSaturatedFat
+            editingLog.sodiumMg = totalSodium
+            editingLog.cholesterolMg = totalCholesterol
+            editingLog.servingSize = combinedServing
+            editingLog.ingredients = combinedIngredients
+            editingLog.note = note.trimmed.isEmpty ? nil : note.trimmed
+            editingLog.date = loggedAt
+            finishSave()
+            return
+        }
+
+        if saveAsSingleMeal, items.count > 1 {
+            modelContext.insert(FoodLog(
+                name: analysisTitle.trimmed.isEmpty ? "Custom Meal" : analysisTitle.trimmed,
+                mealType: mealType,
+                calories: totalCalories,
+                proteinG: totalProtein,
+                carbsG: totalCarbs,
+                fatG: totalFat,
+                fiberG: totalFiber,
+                sugarG: totalSugar,
+                saturatedFatG: totalSaturatedFat,
+                sodiumMg: totalSodium,
+                cholesterolMg: totalCholesterol,
+                servingSize: combinedServing,
+                ingredients: combinedIngredients,
+                note: note.trimmed.isEmpty ? nil : note.trimmed,
+                date: loggedAt
+            ))
+            finishSave()
+            return
+        }
+
         for item in items where !item.name.trimmed.isEmpty {
             modelContext.insert(FoodLog(
                 name: item.name.trimmed,
@@ -468,11 +570,40 @@ private extension LogFoodSheet {
                 proteinG: max(0, item.proteinG),
                 carbsG: max(0, item.carbsG),
                 fatG: max(0, item.fatG),
+                fiberG: max(0, item.fiberG),
+                sugarG: max(0, item.sugarG),
+                saturatedFatG: max(0, item.saturatedFatG),
+                sodiumMg: max(0, item.sodiumMg),
+                cholesterolMg: max(0, item.cholesterolMg),
                 servingSize: item.serving.trimmed.isEmpty ? nil : item.serving.trimmed,
+                ingredients: item.ingredients.trimmed,
                 note: note.trimmed.isEmpty ? nil : note.trimmed,
-                date: date
+                date: loggedAt
             ))
         }
+        finishSave()
+    }
+
+    private var combinedServing: String? {
+        let servings = items.map(\.serving).map(\.trimmed).filter { !$0.isEmpty }
+        return servings.isEmpty ? nil : servings.joined(separator: " + ")
+    }
+
+    private var combinedIngredients: String {
+        var seen = Set<String>()
+        return items.flatMap { item in
+            let listed = item.ingredients
+                .split(separator: ",")
+                .map { String($0).trimmed }
+                .filter { !$0.isEmpty }
+            return listed.isEmpty ? [item.name.trimmed] : listed
+        }
+        .filter { !$0.isEmpty }
+        .filter { seen.insert($0.lowercased()).inserted }
+        .joined(separator: ", ")
+    }
+
+    private func finishSave() {
         try? modelContext.save()
         AchievementService.evaluateAll(modelContext: modelContext)
         PeakHaptics.success()
@@ -488,6 +619,12 @@ private struct EditableMealItem: Identifiable {
     var proteinG = 0.0
     var carbsG = 0.0
     var fatG = 0.0
+    var fiberG = 0.0
+    var sugarG = 0.0
+    var saturatedFatG = 0.0
+    var sodiumMg = 0.0
+    var cholesterolMg = 0.0
+    var ingredients = ""
     var confidence = 1.0
 
     init(
@@ -497,6 +634,12 @@ private struct EditableMealItem: Identifiable {
         proteinG: Double = 0,
         carbsG: Double = 0,
         fatG: Double = 0,
+        fiberG: Double = 0,
+        sugarG: Double = 0,
+        saturatedFatG: Double = 0,
+        sodiumMg: Double = 0,
+        cholesterolMg: Double = 0,
+        ingredients: String = "",
         confidence: Double = 1
     ) {
         self.name = name
@@ -505,6 +648,12 @@ private struct EditableMealItem: Identifiable {
         self.proteinG = proteinG
         self.carbsG = carbsG
         self.fatG = fatG
+        self.fiberG = fiberG
+        self.sugarG = sugarG
+        self.saturatedFatG = saturatedFatG
+        self.sodiumMg = sodiumMg
+        self.cholesterolMg = cholesterolMg
+        self.ingredients = ingredients
         self.confidence = confidence
     }
 
@@ -516,7 +665,30 @@ private struct EditableMealItem: Identifiable {
             proteinG: item.proteinG,
             carbsG: item.carbsG,
             fatG: item.fatG,
+            fiberG: item.fiberG,
+            sugarG: item.sugarG,
+            saturatedFatG: item.saturatedFatG,
+            sodiumMg: item.sodiumMg,
+            cholesterolMg: item.cholesterolMg,
+            ingredients: item.ingredients.joined(separator: ", "),
             confidence: item.confidence
+        )
+    }
+
+    init(log: FoodLog) {
+        self.init(
+            name: log.name,
+            serving: log.servingSize ?? "1 serving",
+            calories: log.calories,
+            proteinG: log.proteinG,
+            carbsG: log.carbsG,
+            fatG: log.fatG,
+            fiberG: log.fiberG,
+            sugarG: log.sugarG,
+            saturatedFatG: log.saturatedFatG,
+            sodiumMg: log.sodiumMg,
+            cholesterolMg: log.cholesterolMg,
+            ingredients: log.ingredients
         )
     }
 

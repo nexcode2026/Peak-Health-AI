@@ -284,7 +284,7 @@ struct DashboardView: View {
                 quickActionButton(.water, title: "Water", icon: "drop.fill", color: PeakTheme.accent)
                 quickActionButton(.meal, title: "Meal", icon: "fork.knife", color: PeakTheme.gold)
                 quickActionButton(.mood, title: "Mood", icon: "face.smiling.fill", color: PeakTheme.rose)
-                quickActionButton(.workout, title: "Workout", icon: "figure.run", color: PeakTheme.coral)
+                quickActionButton(.workout, title: "Training", icon: "figure.run", color: PeakTheme.coral)
             }
         }
         .cardAppear(index: 1)
@@ -708,7 +708,7 @@ struct DashboardView: View {
                     )
                 }
 
-                pillarLink(NutritionDetailView(snapshot: snapshot)) {
+                pillarLink(NutritionDetailView(snapshot: snapshot, date: selectedDate)) {
                     TodayPillarCard(
                         title: "Nutrition",
                         value: "\(viewModel.todayCalories)",
@@ -731,23 +731,27 @@ struct DashboardView: View {
                 }
                 .gridCellColumns(2)
 
-                TodayPillarCard(
-                    title: "Stress",
-                    value: "\(viewModel.stressLoad)",
-                    subtitle: viewModel.stressLabel,
-                    icon: "waveform.path.ecg",
-                    color: stressColor,
-                    progress: Double(viewModel.stressLoad) / 100
-                )
+                pillarLink(stressEnergyDestination) {
+                    TodayPillarCard(
+                        title: "Stress",
+                        value: "\(viewModel.stressLoad)",
+                        subtitle: viewModel.stressLabel,
+                        icon: "waveform.path.ecg",
+                        color: stressColor,
+                        progress: Double(viewModel.stressLoad) / 100
+                    )
+                }
 
-                TodayPillarCard(
-                    title: "Energy",
-                    value: "\(viewModel.energyScore)",
-                    subtitle: viewModel.energyLabel,
-                    icon: "bolt.fill",
-                    color: energyColor,
-                    progress: Double(viewModel.energyScore) / 100
-                )
+                pillarLink(stressEnergyDestination) {
+                    TodayPillarCard(
+                        title: "Energy",
+                        value: "\(viewModel.energyScore)",
+                        subtitle: viewModel.energyLabel,
+                        icon: "bolt.fill",
+                        color: energyColor,
+                        progress: Double(viewModel.energyScore) / 100
+                    )
+                }
             }
         }
         .cardAppear(index: 1)
@@ -884,7 +888,7 @@ struct DashboardView: View {
                             compactActivityStat("Steps", value: "\(liveSteps)", icon: "figure.walk", color: PeakTheme.mint)
                             compactActivityStat("Active", value: "\(viewModel.activeCaloriesDisplay) kcal", icon: "flame.fill", color: PeakTheme.coral)
                             compactActivityStat("Exercise", value: viewModel.healthMetrics.map { "\(Int($0.exerciseMinutes)) min" } ?? "—", icon: "timer", color: PeakTheme.sky)
-                            compactActivityStat("Workouts", value: "\(viewModel.todayWorkouts)", icon: "dumbbell.fill", color: PeakTheme.lavender)
+                            compactActivityStat("Training", value: "\(viewModel.todayWorkouts)", icon: "dumbbell.fill", color: PeakTheme.lavender)
                         }
                     }
                 }
@@ -939,7 +943,7 @@ struct DashboardView: View {
 
                 HStack(alignment: .top, spacing: PeakTheme.Spacing.md) {
                     NavigationLink {
-                        NutritionDetailView(snapshot: snapshot)
+                        NutritionDetailView(snapshot: snapshot, date: selectedDate)
                     } label: {
                         VStack(spacing: PeakTheme.Spacing.xs) {
                             MetricGauge(
@@ -979,7 +983,7 @@ struct DashboardView: View {
 
                 HStack(spacing: PeakTheme.Spacing.md) {
                     macroChip("Protein", value: "\(Int(viewModel.todayProtein))g", goal: "\(viewModel.proteinGoal)g", color: PeakTheme.coral)
-                    macroChip("Workouts", value: "\(viewModel.todayWorkouts)", goal: "today", color: PeakTheme.lavender)
+                    macroChip("Training", value: "\(viewModel.todayWorkouts)", goal: "today", color: PeakTheme.lavender)
                 }
             }
         }
@@ -987,40 +991,62 @@ struct DashboardView: View {
     }
 
     private var stressEnergyExpanded: some View {
-        PeakCard {
-            VStack(alignment: .leading, spacing: PeakTheme.Spacing.md) {
-                sectionLabel("Stress & Energy", icon: "brain.head.profile.fill", color: PeakTheme.rose)
+        NavigationLink {
+            stressEnergyDestination
+        } label: {
+            PeakCard {
+                VStack(alignment: .leading, spacing: PeakTheme.Spacing.md) {
+                    HStack {
+                        sectionLabel("Stress & Energy", icon: "brain.head.profile.fill", color: PeakTheme.rose)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(PeakTheme.textSecondary)
+                    }
 
-                HStack(alignment: .top, spacing: PeakTheme.Spacing.md) {
-                    wellnessSignal(
-                        title: "Stress Load",
-                        value: viewModel.stressLoad,
-                        label: viewModel.stressLabel,
-                        detail: viewModel.stressDetail,
-                        icon: "waveform.path.ecg",
-                        color: stressColor,
-                        inverseProgress: true
-                    )
-                    wellnessSignal(
-                        title: "Available Energy",
-                        value: viewModel.energyScore,
-                        label: viewModel.energyLabel,
-                        detail: viewModel.energyDetail,
-                        icon: "bolt.fill",
-                        color: energyColor
-                    )
-                }
+                    HStack(alignment: .top, spacing: PeakTheme.Spacing.md) {
+                        wellnessSignal(
+                            title: "Stress Load",
+                            value: viewModel.stressLoad,
+                            label: viewModel.stressLabel,
+                            detail: viewModel.stressDetail,
+                            icon: "waveform.path.ecg",
+                            color: stressColor,
+                            inverseProgress: true
+                        )
+                        wellnessSignal(
+                            title: "Available Energy",
+                            value: viewModel.energyScore,
+                            label: viewModel.energyLabel,
+                            detail: viewModel.energyDetail,
+                            icon: "bolt.fill",
+                            color: energyColor
+                        )
+                    }
 
-                HStack(spacing: PeakTheme.Spacing.xs) {
-                    Label("\(Int(viewModel.recentRoutineConsistency * 100))% routine consistency", systemImage: "calendar.badge.checkmark")
-                    Spacer()
-                    Label("Wellness estimate", systemImage: "info.circle")
+                    HStack(spacing: PeakTheme.Spacing.xs) {
+                        Label("\(Int(viewModel.recentRoutineConsistency * 100))% routine consistency", systemImage: "calendar.badge.checkmark")
+                        Spacer()
+                        Label("Tap for drivers", systemImage: "info.circle")
+                    }
+                    .font(PeakTheme.Typography.micro)
+                    .foregroundStyle(PeakTheme.textSecondary)
                 }
-                .font(PeakTheme.Typography.micro)
-                .foregroundStyle(PeakTheme.textSecondary)
             }
         }
+        .buttonStyle(.plain)
         .cardAppear(index: 6)
+    }
+
+    private var stressEnergyDestination: some View {
+        StressEnergyDetailView(
+            stress: viewModel.stressLoad,
+            stressLabel: viewModel.stressLabel,
+            energy: viewModel.energyScore,
+            energyLabel: viewModel.energyLabel,
+            stressDrivers: viewModel.stressDrivers,
+            energyDrivers: viewModel.energyDrivers
+        )
     }
 
     private func wellnessSignal(
@@ -1225,7 +1251,7 @@ struct DashboardView: View {
                     )
                     .frame(width: 92)
                 }
-                TappableMetricCard(destination: NutritionDetailView(snapshot: snapshot)) {
+                TappableMetricCard(destination: NutritionDetailView(snapshot: snapshot, date: selectedDate)) {
                     PremiumProgressRing(
                         progress: viewModel.calorieProgress,
                         label: "Nutrition",
@@ -1269,7 +1295,7 @@ struct DashboardView: View {
                     drillLink(ActivityDetailView(snapshot: snapshot)) {
                         DrillDownRow(icon: "figure.walk", title: "Activity", value: "\(liveSteps)", subtitle: "Steps · strain · workouts", color: PeakTheme.mint)
                     }
-                    drillLink(NutritionDetailView(snapshot: snapshot)) {
+                    drillLink(NutritionDetailView(snapshot: snapshot, date: selectedDate)) {
                         DrillDownRow(icon: "fork.knife", title: "Nutrition", value: "\(viewModel.todayCalories) kcal", subtitle: "Macros & meal logging", color: PeakTheme.gold)
                     }
                 }

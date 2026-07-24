@@ -213,7 +213,7 @@ struct ProfileView: View {
                 goalTile("Calories", value: "\(viewModel.profile?.dailyCalorieGoal ?? 2200) kcal", icon: "flame.fill", color: PeakTheme.gold)
                 goalTile("Protein", value: "\(viewModel.profile?.dailyProteinGoalG ?? 120) g", icon: "bolt.fill", color: PeakTheme.coral)
                 goalTile("Steps", value: (viewModel.profile?.dailyStepsGoal ?? 10_000).formatted(), icon: "shoeprints.fill", color: PeakTheme.mint)
-                goalTile("Workouts", value: "\(viewModel.profile?.weeklyWorkoutGoal ?? 4)/week", icon: "dumbbell.fill", color: PeakTheme.sky)
+                goalTile("Training", value: "\(viewModel.profile?.weeklyWorkoutGoal ?? 4)/week", icon: "dumbbell.fill", color: PeakTheme.sky)
             }
         }
     }
@@ -346,7 +346,7 @@ struct ProfileView: View {
                 label: { $0.displayName }
             )
             settingToggle(icon: "fork.knife.circle.fill", title: "Meal Reminders", detail: "Gentle prompts to log fuel", color: PeakTheme.gold, isOn: binding(\.mealReminderEnabled))
-            settingToggle(icon: "figure.run.circle.fill", title: "Workout Reminders", detail: "Stay aligned with your weekly target", color: PeakTheme.coral, isOn: binding(\.workoutReminderEnabled))
+            settingToggle(icon: "figure.run.circle.fill", title: "Training Reminders", detail: "Stay aligned with your weekly target", color: PeakTheme.coral, isOn: binding(\.workoutReminderEnabled))
             settingsRow(icon: "app.badge.fill", title: "App Icon", color: PeakTheme.ultraviolet) {
                 showAppIconPicker = true
             }

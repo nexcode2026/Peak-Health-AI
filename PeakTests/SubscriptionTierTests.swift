@@ -58,12 +58,40 @@ final class SubscriptionTierTests: XCTestCase {
             proteinG: 34,
             carbsG: 72,
             fatG: 21,
+            fiberG: 11,
+            sugarG: 7,
+            saturatedFatG: 6,
+            sodiumMg: 980,
+            cholesterolMg: 65,
+            ingredients: ["chicken", "black beans", "rice"],
             confidence: 0.82
         )
 
         XCTAssertEqual(item.calories, 620)
         XCTAssertEqual(item.proteinG, 34)
+        XCTAssertEqual(item.fiberG, 11)
+        XCTAssertEqual(item.sodiumMg, 980)
+        XCTAssertEqual(item.ingredients, ["chicken", "black beans", "rice"])
         XCTAssertEqual(item.serving, "1 bowl")
+    }
+
+    func testTrainingTemplatesRoundTripWithoutLosingExercises() {
+        let original = TrainingTemplate(
+            name: "Lower Strength",
+            workoutType: .strength,
+            durationMinutes: 42.5,
+            intensity: .high,
+            exerciseDetails: "Squat · 4 × 6\nRomanian deadlift · 3 × 8",
+            note: "Progress only with clean reps."
+        )
+
+        let decoded = TrainingTemplateStore.load(
+            from: TrainingTemplateStore.encode([original])
+        )
+
+        XCTAssertEqual(decoded, [original])
+        XCTAssertEqual(decoded.first?.durationMinutes, 42.5)
+        XCTAssertTrue(decoded.first?.exerciseDetails.contains("Squat") == true)
     }
 
     func testWellnessStatusesExposeGuidance() {

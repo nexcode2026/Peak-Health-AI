@@ -16,7 +16,7 @@ final class CoachViewModel {
             switch self {
             case .water: "Water"
             case .meal: "Meal"
-            case .workout: "Workout"
+            case .workout: "Training"
             case .mood: "Mood & Energy"
             }
         }

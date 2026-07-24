@@ -32,7 +32,7 @@ final class TrackViewModel {
         case habits = "Habits"
         case water = "Water"
         case food = "Food"
-        case workouts = "Workouts"
+        case workouts = "Training"
         case mood = "Mood"
 
         var id: String { rawValue }

@@ -13,7 +13,13 @@ final class FoodLog {
     var proteinG: Double = 0
     var carbsG: Double = 0
     var fatG: Double = 0
+    var fiberG: Double = 0
+    var sugarG: Double = 0
+    var saturatedFatG: Double = 0
+    var sodiumMg: Double = 0
+    var cholesterolMg: Double = 0
     var servingSize: String? = nil
+    var ingredients: String = ""
     var note: String? = nil
     var createdAt: Date = Date()
 
@@ -24,7 +30,13 @@ final class FoodLog {
         proteinG: Double = 0,
         carbsG: Double = 0,
         fatG: Double = 0,
+        fiberG: Double = 0,
+        sugarG: Double = 0,
+        saturatedFatG: Double = 0,
+        sodiumMg: Double = 0,
+        cholesterolMg: Double = 0,
         servingSize: String? = nil,
+        ingredients: String = "",
         note: String? = nil,
         date: Date = Date()
     ) {
@@ -36,7 +48,13 @@ final class FoodLog {
         self.proteinG = proteinG
         self.carbsG = carbsG
         self.fatG = fatG
+        self.fiberG = fiberG
+        self.sugarG = sugarG
+        self.saturatedFatG = saturatedFatG
+        self.sodiumMg = sodiumMg
+        self.cholesterolMg = cholesterolMg
         self.servingSize = servingSize
+        self.ingredients = ingredients
         self.note = note
         self.createdAt = Date()
     }

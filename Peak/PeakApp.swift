@@ -362,14 +362,14 @@ struct MainTabView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(isQuickLogOpen ? "Close quick log menu" : "Open quick log menu")
-        .accessibilityHint("Log water, a meal, a workout, or your mood")
+        .accessibilityHint("Log water, a meal, training, or your mood")
     }
 
     private var quickLogMenu: some View {
         VStack(spacing: 2) {
             quickLogButton(.water, title: "Water", icon: "drop.fill", color: PeakTheme.teal)
             quickLogButton(.meal, title: "AI Meal", icon: "sparkles.rectangle.stack.fill", color: PeakTheme.coral)
-            quickLogButton(.workout, title: "Workout", icon: "figure.run", color: PeakTheme.lavender)
+            quickLogButton(.workout, title: "Training", icon: "figure.run", color: PeakTheme.lavender)
             quickLogButton(.mood, title: "Mood", icon: "face.smiling.fill", color: PeakTheme.gold)
         }
         .padding(6)

@@ -22,7 +22,7 @@ struct ActiveWorkoutView: View {
                     activeTrackingView
                 }
             }
-            .navigationTitle(tracker.state == .idle ? "Start Workout" : tracker.workoutType.displayName)
+            .navigationTitle(tracker.state == .idle ? "Start Training" : tracker.workoutType.displayName)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

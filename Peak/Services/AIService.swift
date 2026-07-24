@@ -35,6 +35,12 @@ struct MealAnalysisItem: Identifiable, Sendable {
     var proteinG: Double
     var carbsG: Double
     var fatG: Double
+    var fiberG: Double = 0
+    var sugarG: Double = 0
+    var saturatedFatG: Double = 0
+    var sodiumMg: Double = 0
+    var cholesterolMg: Double = 0
+    var ingredients: [String] = []
     var confidence: Double
 }
 
@@ -164,7 +170,7 @@ final class AIService: AIServiceProtocol, @unchecked Sendable {
         }
 
         let prompt = """
-        Analyze this meal for a wellness food log. Identify each visible or described food separately. Estimate the most likely edible serving and calories, protein, carbohydrates, and fat for that serving. Use ordinary food names, not medical claims. Be conservative when portions are unclear and lower confidence rather than inventing precision. Nutrition values are estimates that the user will review and edit before saving.
+        Analyze this meal for a wellness food log. Identify each visible or described food separately. Estimate the most likely edible serving, calories, protein, carbohydrates, total fat, saturated fat, fiber, sugar, sodium, cholesterol, and likely ingredients for that serving. Use ordinary food names, not medical claims. Be conservative when portions are unclear and lower confidence rather than inventing precision. Nutrition values are estimates that the user will review and edit before saving.
 
         User description: \(analysisRequest.query?.trimmed.isEmpty == false ? analysisRequest.query!.trimmed : "No additional description")
         """
@@ -187,9 +193,19 @@ final class AIService: AIServiceProtocol, @unchecked Sendable {
                 "protein_g": ["type": "number", "minimum": 0],
                 "carbs_g": ["type": "number", "minimum": 0],
                 "fat_g": ["type": "number", "minimum": 0],
+                "fiber_g": ["type": "number", "minimum": 0],
+                "sugar_g": ["type": "number", "minimum": 0],
+                "saturated_fat_g": ["type": "number", "minimum": 0],
+                "sodium_mg": ["type": "number", "minimum": 0],
+                "cholesterol_mg": ["type": "number", "minimum": 0],
+                "ingredients": ["type": "array", "items": ["type": "string"], "maxItems": 24],
                 "confidence": ["type": "number", "minimum": 0, "maximum": 1],
             ],
-            "required": ["name", "serving", "calories", "protein_g", "carbs_g", "fat_g", "confidence"],
+            "required": [
+                "name", "serving", "calories", "protein_g", "carbs_g", "fat_g",
+                "fiber_g", "sugar_g", "saturated_fat_g", "sodium_mg",
+                "cholesterol_mg", "ingredients", "confidence",
+            ],
         ]
         let schema: [String: Any] = [
             "type": "object",
@@ -246,6 +262,12 @@ final class AIService: AIServiceProtocol, @unchecked Sendable {
                 let protein_g: Double
                 let carbs_g: Double
                 let fat_g: Double
+                let fiber_g: Double
+                let sugar_g: Double
+                let saturated_fat_g: Double
+                let sodium_mg: Double
+                let cholesterol_mg: Double
+                let ingredients: [String]
                 let confidence: Double
             }
             let title: String
@@ -273,6 +295,12 @@ final class AIService: AIServiceProtocol, @unchecked Sendable {
                     proteinG: $0.protein_g,
                     carbsG: $0.carbs_g,
                     fatG: $0.fat_g,
+                    fiberG: $0.fiber_g,
+                    sugarG: $0.sugar_g,
+                    saturatedFatG: $0.saturated_fat_g,
+                    sodiumMg: $0.sodium_mg,
+                    cholesterolMg: $0.cholesterol_mg,
+                    ingredients: $0.ingredients,
                     confidence: $0.confidence
                 )
             },

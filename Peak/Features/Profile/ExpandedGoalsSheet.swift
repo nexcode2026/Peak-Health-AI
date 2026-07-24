@@ -33,7 +33,7 @@ struct ExpandedGoalsSheet: View {
                         color: PeakTheme.lavender
                     ) {
                         goalControl("Recovery target", value: "\(recovery)", icon: "heart.circle.fill", color: PeakTheme.mint, binding: intBinding($recovery), range: 50...95, step: 1)
-                        goalControl("Sleep duration", value: "\(sleep.formattedOneDecimal) hours", icon: "moon.zzz.fill", color: PeakTheme.lavender, binding: $sleep, range: 6...10, step: 0.25)
+                        goalControl("Sleep duration", value: "\(sleep.formattedOneDecimal) hours", icon: "moon.zzz.fill", color: PeakTheme.lavender, binding: $sleep, range: 6...10, step: 0.5)
                         goalControl("Resting heart rate", value: "\(restingHR) bpm", icon: "waveform.path.ecg", color: PeakTheme.coral, binding: intBinding($restingHR), range: 45...80, step: 1)
                     }
 
@@ -56,7 +56,7 @@ struct ExpandedGoalsSheet: View {
                     ) {
                         goalControl("Daily steps", value: steps.formatted(), icon: "shoeprints.fill", color: PeakTheme.mint, binding: intBinding($steps), range: 3000...20_000, step: 500)
                         goalControl("Active minutes", value: "\(activeMinutes) min/day", icon: "timer", color: PeakTheme.sky, binding: intBinding($activeMinutes), range: 10...120, step: 5)
-                        goalControl("Training frequency", value: "\(weeklyWorkouts) workouts/week", icon: "dumbbell.fill", color: PeakTheme.lavender, binding: intBinding($weeklyWorkouts), range: 1...7, step: 1)
+                        goalControl("Training frequency", value: "\(weeklyWorkouts) sessions/week", icon: "dumbbell.fill", color: PeakTheme.lavender, binding: intBinding($weeklyWorkouts), range: 1...7, step: 1)
                     }
 
                     Text("These are wellness targets, not medical recommendations. Adjust them to match guidance from your healthcare or fitness professional.")

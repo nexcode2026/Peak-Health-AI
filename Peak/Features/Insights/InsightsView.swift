@@ -13,6 +13,7 @@ struct InsightsView: View {
             ScrollView {
                 VStack(spacing: PeakTheme.Spacing.lg) {
                     rangePicker
+                    FitnessTrainingDashboard()
                     overviewHero
                     metricCards
                     recoveryChart
@@ -28,7 +29,7 @@ struct InsightsView: View {
             }
             .peakDismissKeyboardOnSwipe()
             .peakScreenBackground()
-            .navigationTitle("Trends")
+            .navigationTitle("Fitness")
         }
         .onAppear {
             viewModel.load(modelContext: modelContext, tier: container.currentTier)

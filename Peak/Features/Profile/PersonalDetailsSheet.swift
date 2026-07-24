@@ -101,7 +101,7 @@ struct PersonalDetailsSheet: View {
 
                     detailsSection(title: "Core Daily Targets", icon: "scope", color: PeakTheme.ultraviolet) {
                         targetSlider("Recovery", value: "\(Int(recoveryTarget))", icon: "bolt.heart.fill", color: PeakTheme.mint, valueBinding: $recoveryTarget, range: 40...100, step: 1)
-                        targetSlider("Sleep", value: "\(sleepTarget.formattedOneDecimal) h", icon: "moon.zzz.fill", color: PeakTheme.lavender, valueBinding: $sleepTarget, range: 5...10, step: 0.25)
+                        targetSlider("Sleep", value: "\(sleepTarget.formattedOneDecimal) h", icon: "moon.zzz.fill", color: PeakTheme.lavender, valueBinding: $sleepTarget, range: 5...10, step: 0.5)
                         targetSlider("Water", value: displayFormatter.formatWater(Int(waterGoalML)), icon: "drop.fill", color: PeakTheme.accent, valueBinding: $waterGoalML, range: 1000...5000, step: 250)
                         targetSlider("Steps", value: Int(stepsGoal).formatted(), icon: "figure.walk", color: PeakTheme.coral, valueBinding: $stepsGoal, range: 2_000...30_000, step: 500)
                     }
@@ -193,9 +193,9 @@ struct PersonalDetailsSheet: View {
     private var heightSlider: some View {
         Group {
             if displayFormatter.system == .metric {
-                Slider(value: $heightCm, in: 120...220, step: 1)
+                Slider(value: $heightCm, in: 120...220, step: 0.5)
             } else {
-                Slider(value: Binding(get: { heightCm / 2.54 }, set: { heightCm = $0 * 2.54 }), in: 48...84, step: 1)
+                Slider(value: Binding(get: { heightCm / 2.54 }, set: { heightCm = $0 * 2.54 }), in: 48...84, step: 0.5)
             }
         }
         .tint(PeakTheme.mint)
@@ -206,7 +206,7 @@ struct PersonalDetailsSheet: View {
             if displayFormatter.system == .metric {
                 Slider(value: $weightKg, in: 40...150, step: 0.5)
             } else {
-                Slider(value: Binding(get: { weightKg * 2.20462 }, set: { weightKg = $0 / 2.20462 }), in: 90...330, step: 1)
+                Slider(value: Binding(get: { weightKg * 2.20462 }, set: { weightKg = $0 / 2.20462 }), in: 90...330, step: 0.5)
             }
         }
         .tint(PeakTheme.gold)

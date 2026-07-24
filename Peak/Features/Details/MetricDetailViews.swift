@@ -184,7 +184,7 @@ struct SleepDetailView: View {
                         Spacer()
                         Text("\(selectedGoal.formattedOneDecimal) hours").foregroundStyle(PeakTheme.lavender)
                     }
-                    Slider(value: $selectedGoal, in: 6...10, step: 0.25)
+                    Slider(value: $selectedGoal, in: 6...10, step: 0.5)
                         .tint(PeakTheme.lavender)
                     Button("Save Sleep Goal") { saveGoal() }
                         .buttonStyle(.borderedProminent)
@@ -412,7 +412,7 @@ struct ActivityDetailView: View {
                 .padding(.horizontal)
 
                 Button { showWorkoutLog = true } label: {
-                    Label("Log a Workout", systemImage: "plus.circle.fill")
+                    Label("Log Training", systemImage: "plus.circle.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
@@ -446,7 +446,16 @@ struct ActivityDetailView: View {
 
 struct NutritionDetailView: View {
     let snapshot: DailyHealthSnapshot?
+    let date: Date
+    @Environment(\.modelContext) private var modelContext
     @State private var showFoodLog = false
+    @State private var editingLog: FoodLog?
+    @State private var logs: [FoodLog] = []
+
+    init(snapshot: DailyHealthSnapshot?, date: Date = .now) {
+        self.snapshot = snapshot
+        self.date = date
+    }
 
     private var calorieProgress: Double {
         min(1, max(0, (snapshot?.caloriesConsumed ?? 0) / max(1, snapshot?.calorieGoal ?? 2200)))
@@ -474,6 +483,9 @@ struct NutritionDetailView: View {
                 macroRings
                     .padding(.horizontal)
 
+                completeNutrition
+                    .padding(.horizontal)
+
                 Button { showFoodLog = true } label: {
                     Label("Log Meal or Snack", systemImage: "plus.circle.fill")
                         .frame(maxWidth: .infinity)
@@ -481,6 +493,9 @@ struct NutritionDetailView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(PeakTheme.gold)
                 .padding(.horizontal)
+
+                mealTimeline
+                    .padding(.horizontal)
 
                 tipsSection([
                     ("leaf.fill", "Protein timing", "Spread protein across meals for recovery."),
@@ -493,7 +508,13 @@ struct NutritionDetailView: View {
         .peakScreenBackground()
         .navigationTitle("Nutrition")
         .navigationBarTitleDisplayMode(.large)
-        .sheet(isPresented: $showFoodLog) { LogFoodSheet() }
+        .onAppear { loadLogs() }
+        .sheet(isPresented: $showFoodLog, onDismiss: loadLogs) {
+            LogFoodSheet(date: date)
+        }
+        .sheet(item: $editingLog, onDismiss: loadLogs) { log in
+            LogFoodSheet(date: log.date, editingLog: log)
+        }
     }
 
     private var macroRings: some View {
@@ -515,6 +536,108 @@ struct NutritionDetailView: View {
             size: 76
         )
         .frame(maxWidth: .infinity)
+    }
+
+    private var completeNutrition: some View {
+        let fiber = logs.reduce(0) { $0 + $1.fiberG }
+        let sugar = logs.reduce(0) { $0 + $1.sugarG }
+        let sodium = logs.reduce(0) { $0 + $1.sodiumMg }
+        let saturatedFat = logs.reduce(0) { $0 + $1.saturatedFatG }
+        return PeakCard {
+            VStack(alignment: .leading, spacing: PeakTheme.Spacing.sm) {
+                Label("Complete Daily Nutrition", systemImage: "list.bullet.clipboard.fill")
+                    .font(PeakTheme.Typography.headline)
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                    nutritionStat("Fiber", value: "\(fiber.formattedOneDecimal) g", color: PeakTheme.mint)
+                    nutritionStat("Sugar", value: "\(sugar.formattedOneDecimal) g", color: PeakTheme.gold)
+                    nutritionStat("Sodium", value: "\(Int(sodium)) mg", color: PeakTheme.sky)
+                    nutritionStat("Saturated fat", value: "\(saturatedFat.formattedOneDecimal) g", color: PeakTheme.lavender)
+                }
+                Text("Values reflect logged foods and AI estimates. Verify packaged foods against their labels.")
+                    .font(PeakTheme.Typography.micro)
+                    .foregroundStyle(PeakTheme.textSecondary)
+            }
+        }
+    }
+
+    private func nutritionStat(_ title: String, value: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title).font(PeakTheme.Typography.micro).foregroundStyle(PeakTheme.textSecondary)
+            Text(value).font(PeakTheme.Typography.caption).fontWeight(.semibold).foregroundStyle(color)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(PeakTheme.Spacing.sm)
+        .background(color.opacity(0.07), in: RoundedRectangle(cornerRadius: PeakTheme.Radius.sm))
+    }
+
+    private var mealTimeline: some View {
+        VStack(alignment: .leading, spacing: PeakTheme.Spacing.sm) {
+            SectionHeaderView(
+                title: "Meals & Foods",
+                icon: "clock.fill",
+                actionTitle: "+ Add"
+            ) { showFoodLog = true }
+
+            if logs.isEmpty {
+                EmptyStateView(
+                    icon: "fork.knife",
+                    title: "No meals logged",
+                    message: "Search, scan, photograph, or manually build a meal."
+                )
+            } else {
+                ForEach(logs, id: \.id) { log in
+                    Button { editingLog = log } label: {
+                        VStack(alignment: .leading, spacing: PeakTheme.Spacing.xs) {
+                            HStack {
+                                Label(log.name, systemImage: log.meal.icon)
+                                    .font(PeakTheme.Typography.headline)
+                                    .foregroundStyle(PeakTheme.textPrimary)
+                                Spacer()
+                                Text(log.date.formatted(date: .omitted, time: .shortened))
+                                    .font(PeakTheme.Typography.micro)
+                                    .foregroundStyle(PeakTheme.textSecondary)
+                            }
+                            Text("\(log.calories) kcal · P \(Int(log.proteinG))g · C \(Int(log.carbsG))g · F \(Int(log.fatG))g")
+                                .font(PeakTheme.Typography.caption)
+                                .foregroundStyle(PeakTheme.textSecondary)
+                            if let serving = log.servingSize, !serving.isEmpty {
+                                Text(serving).font(PeakTheme.Typography.micro).foregroundStyle(PeakTheme.gold)
+                            }
+                            if !log.ingredients.isEmpty {
+                                Text("Ingredients: \(log.ingredients)")
+                                    .font(PeakTheme.Typography.micro)
+                                    .foregroundStyle(PeakTheme.textSecondary)
+                                    .lineLimit(3)
+                            }
+                        }
+                        .padding(PeakTheme.Spacing.md)
+                        .glassCard(cornerRadius: PeakTheme.Radius.md, tint: Color(hex: log.meal.color).opacity(0.04))
+                    }
+                    .buttonStyle(.plain)
+                    .contextMenu {
+                        Button { editingLog = log } label: {
+                            Label("Edit nutrition entry", systemImage: "pencil")
+                        }
+                        Button(role: .destructive) {
+                            modelContext.delete(log)
+                            try? modelContext.save()
+                            loadLogs()
+                        } label: {
+                            Label("Delete entry", systemImage: "trash")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func loadLogs() {
+        let start = date.startOfDay
+        let end = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? start.addingTimeInterval(86_400)
+        logs = (try? modelContext.fetch(FetchDescriptor<FoodLog>(
+            predicate: #Predicate { $0.date >= start && $0.date < end },
+            sortBy: [SortDescriptor(\.date)]
+        ))) ?? []
     }
 }
 
@@ -599,6 +722,173 @@ struct HydrationDetailView: View {
         AchievementService.evaluateAll(modelContext: modelContext)
         PeakHaptics.success()
         Task { try? await container.healthKit.writeHydration(ml: amountML, date: .now) }
+    }
+}
+
+// MARK: - Stress & Energy Detail
+
+struct StressEnergyDetailView: View {
+    let stress: Int
+    let stressLabel: String
+    let energy: Int
+    let energyLabel: String
+    let stressDrivers: [WellnessSignalDriver]
+    let energyDrivers: [WellnessSignalDriver]
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: PeakTheme.Spacing.lg) {
+                HStack(spacing: PeakTheme.Spacing.md) {
+                    MetricGauge(
+                        progress: 1 - Double(stress) / 100,
+                        value: "\(stress)",
+                        label: stressLabel,
+                        color: stressColor,
+                        size: 145
+                    )
+                    MetricGauge(
+                        progress: Double(energy) / 100,
+                        value: "\(energy)",
+                        label: energyLabel,
+                        color: energyColor,
+                        size: 145
+                    )
+                }
+
+                explanationCard(
+                    title: "Why stress is \(stressLabel.lowercased())",
+                    icon: "waveform.path.ecg",
+                    color: stressColor,
+                    drivers: stressDrivers,
+                    showsSignedImpact: true
+                )
+
+                explanationCard(
+                    title: "Where your energy comes from",
+                    icon: "bolt.fill",
+                    color: energyColor,
+                    drivers: energyDrivers,
+                    showsSignedImpact: false
+                )
+
+                recommendations
+
+                Text("Stress and energy are wellness estimates derived from logged and connected data. They are not measurements of a medical condition and should not be used for diagnosis.")
+                    .font(PeakTheme.Typography.micro)
+                    .foregroundStyle(PeakTheme.textSecondary)
+                    .padding(PeakTheme.Spacing.md)
+                    .glassCard(cornerRadius: PeakTheme.Radius.md, tint: PeakTheme.gold.opacity(0.05))
+            }
+            .padding(.horizontal, PeakTheme.Spacing.md)
+            .padding(.bottom, 100)
+        }
+        .peakScreenBackground()
+        .navigationTitle("Stress & Energy")
+        .navigationBarTitleDisplayMode(.large)
+    }
+
+    private func explanationCard(
+        title: String,
+        icon: String,
+        color: Color,
+        drivers: [WellnessSignalDriver],
+        showsSignedImpact: Bool
+    ) -> some View {
+        PeakCard {
+            VStack(alignment: .leading, spacing: PeakTheme.Spacing.md) {
+                Label(title, systemImage: icon)
+                    .font(PeakTheme.Typography.headline)
+                    .foregroundStyle(color)
+                ForEach(drivers) { driver in
+                    VStack(alignment: .leading, spacing: 5) {
+                        HStack {
+                            Image(systemName: driver.icon)
+                                .foregroundStyle(driver.isSupportive ? PeakTheme.mint : color)
+                                .frame(width: 24)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(driver.title).font(PeakTheme.Typography.caption).fontWeight(.semibold)
+                                Text(driver.value).font(PeakTheme.Typography.micro).foregroundStyle(PeakTheme.textSecondary)
+                            }
+                            Spacer()
+                            Text(impactText(driver.impact, signed: showsSignedImpact))
+                                .font(PeakTheme.Typography.micro)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(driver.impact < 0 || driver.isSupportive ? PeakTheme.mint : color)
+                        }
+                        ProgressView(value: min(1, abs(driver.impact) / (showsSignedImpact ? 20 : 35)))
+                            .tint(driver.impact < 0 || driver.isSupportive ? PeakTheme.mint : color)
+                        Text(driver.detail)
+                            .font(PeakTheme.Typography.micro)
+                            .foregroundStyle(PeakTheme.textSecondary)
+                    }
+                    if driver.id != drivers.last?.id { Divider() }
+                }
+            }
+        }
+    }
+
+    private var recommendations: some View {
+        let pressure = stressDrivers
+            .filter { !$0.isSupportive && $0.impact > 0 }
+            .sorted { $0.impact > $1.impact }
+            .prefix(3)
+        return PeakCard {
+            VStack(alignment: .leading, spacing: PeakTheme.Spacing.sm) {
+                Label("Best next moves", systemImage: "sparkles")
+                    .font(PeakTheme.Typography.headline)
+                    .foregroundStyle(PeakTheme.accent)
+                if pressure.isEmpty {
+                    Text("Your inputs are broadly supportive. Protect the routines already working and match training to how you feel.")
+                        .font(PeakTheme.Typography.caption)
+                        .foregroundStyle(PeakTheme.textSecondary)
+                } else {
+                    ForEach(Array(pressure)) { driver in
+                        HStack(alignment: .top, spacing: PeakTheme.Spacing.sm) {
+                            Image(systemName: driver.icon)
+                                .foregroundStyle(PeakTheme.accent)
+                                .frame(width: 22)
+                            Text(recommendation(for: driver.id))
+                                .font(PeakTheme.Typography.caption)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func impactText(_ impact: Double, signed: Bool) -> String {
+        let rounded = Int(abs(impact).rounded())
+        if signed {
+            return impact < 0 ? "−\(rounded) load" : "+\(rounded) load"
+        }
+        return "\(rounded) pts"
+    }
+
+    private func recommendation(for id: String) -> String {
+        if id.contains("sleep") { return "Protect tonight’s sleep window and keep the final hour lower stimulation." }
+        if id.contains("hydration") { return "Spread water across the next few hours instead of trying to catch up at once." }
+        if id.contains("fuel") { return "Log or plan a balanced meal with protein, carbohydrate, fiber, and healthy fat." }
+        if id.contains("training") { return "Use easier movement or recovery work if your body feels more strained than expected." }
+        if id.contains("check-in") { return "Use a brief breathing break, walk, or journal check-in and reassess later." }
+        return "Choose a lighter day and prioritize the recovery behavior that feels most achievable."
+    }
+
+    private var stressColor: Color {
+        switch stress {
+        case ..<35: PeakTheme.mint
+        case 35..<60: PeakTheme.gold
+        case 60..<80: PeakTheme.coral
+        default: PeakTheme.rose
+        }
+    }
+
+    private var energyColor: Color {
+        switch energy {
+        case ..<35: PeakTheme.rose
+        case 35..<60: PeakTheme.gold
+        case 60..<80: PeakTheme.mint
+        default: PeakTheme.accent
+        }
     }
 }
 

@@ -93,6 +93,7 @@
 		E9BF2CD7C3314F3E949C828D /* MoodPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9B769EEE3534376A3EE7D12 /* MoodPicker.swift */; };
 		E9D095DB87754CCE9E2C6429 /* HealthSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58F7FE6140C4BC988076723 /* HealthSnapshot.swift */; };
 		EB2BB036D10F434295BF0F7B /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C25210EF3A044A04BF738480 /* PaywallView.swift */; };
+		F04300000000000000000002 /* FitnessTrainingDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F04300000000000000000001 /* FitnessTrainingDashboard.swift */; };
 		F1A2030405060708090A0B0C /* PeakRiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2030405060708090A0B0D /* PeakRiveView.swift */; };
 		F1A2B3C4D5E6478990ABCDEF01 /* ModelContainerFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E6478990ABCDEF02 /* ModelContainerFactory.swift */; };
 		F2A3B4C5D6E7478990ABCDEF012 /* TodayPillarCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A3B4C5D6E7478990ABCDEF013 /* TodayPillarCard.swift */; };
@@ -198,6 +199,7 @@
 		E5F6478990ABCDEF012345679 /* AnimatedComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedComponents.swift; sourceTree = "<group>"; };
 		E61FFA045CA741FE9348CA16 /* RecoveryScoringService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryScoringService.swift; sourceTree = "<group>"; };
 		EA3FDC8184884D5092A8568F /* ProgressRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressRing.swift; sourceTree = "<group>"; };
+		F04300000000000000000001 /* FitnessTrainingDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitnessTrainingDashboard.swift; sourceTree = "<group>"; };
 		F1A2030405060708090A0B0D /* PeakRiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeakRiveView.swift; sourceTree = "<group>"; };
 		F1A2B3C4D5E6478990ABCDEF02 /* ModelContainerFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelContainerFactory.swift; sourceTree = "<group>"; };
 		F2864A4DB48A4C5D8C6489A7 /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
@@ -351,6 +353,7 @@
 		901BEFC6265C49389021DCDE /* Insights */ = {
 			isa = PBXGroup;
 			children = (
+				F04300000000000000000001 /* FitnessTrainingDashboard.swift */,
 				B9E5A1279EAA4B75AA2AB153 /* InsightsView.swift */,
 			);
 			path = Insights;
@@ -599,6 +602,7 @@
 				1ED67BC1DFC14234A8493E72 /* DashboardView.swift in Sources */,
 				C3D4E5F6478990ABCDEF01234 /* MetricDetailViews.swift in Sources */,
 				48FEE9D4C6304E8798C0795A /* InsightsView.swift in Sources */,
+				F04300000000000000000002 /* FitnessTrainingDashboard.swift in Sources */,
 				37AB69611EE0458AA436EC42 /* CreateHabitSheet.swift in Sources */,
 				1B895E3DF86C40389713B96A /* LogFoodSheet.swift in Sources */,
 				A384C222646C4BB7A0D638DF /* LogWaterSheet.swift in Sources */,
@@ -817,7 +821,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = Peak/Peak.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 12;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Peak/Info.plist;
@@ -839,7 +843,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4.2;
+				MARKETING_VERSION = 0.4.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peak.health;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -858,7 +862,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = Peak/Peak.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 12;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Peak/Info.plist;
@@ -880,7 +884,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4.2;
+				MARKETING_VERSION = 0.4.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.peak.health;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

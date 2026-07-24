@@ -144,7 +144,7 @@ struct OnboardingView: View {
                 Text(unitSystem.detail).font(.caption).foregroundStyle(.secondary)
             }
             Section("Body Metrics") {
-                metricSlider(title: "Height", value: formatter.formatHeight(heightCm), binding: $heightCm, range: 120...220, step: 1)
+                metricSlider(title: "Height", value: formatter.formatHeight(heightCm), binding: $heightCm, range: 120...220, step: 0.5)
                 metricSlider(title: "Weight", value: formatter.formatWeight(weightKg), binding: $weightKg, range: 35...200, step: 0.5)
             }
             continueButton(disabled: displayName.trimmed.count < 2)
@@ -183,7 +183,7 @@ struct OnboardingView: View {
         onboardingForm(title: "Set Your Targets", subtitle: "Start realistic. You can refine every goal later in You.") {
             Section("Recovery & Rest") {
                 metricSlider(title: "Recovery", value: "\(recoveryTarget)", binding: intBinding($recoveryTarget), range: 50...95, step: 1)
-                metricSlider(title: "Sleep", value: "\(sleepTarget.formattedOneDecimal) h", binding: $sleepTarget, range: 6...10, step: 0.25)
+                metricSlider(title: "Sleep", value: "\(sleepTarget.formattedOneDecimal) h", binding: $sleepTarget, range: 6...10, step: 0.5)
             }
             Section("Hydration & Fuel") {
                 metricSlider(title: "Water", value: formatter.formatWater(waterGoal), binding: intBinding($waterGoal), range: 1_500...4_500, step: 250)
@@ -192,7 +192,7 @@ struct OnboardingView: View {
             }
             Section("Movement") {
                 Stepper("Steps: \(stepsGoal.formatted())", value: $stepsGoal, in: 2_000...25_000, step: 500)
-                Stepper("Workouts: \(workoutGoal) / week", value: $workoutGoal, in: 1...7)
+                Stepper("Training: \(workoutGoal) sessions / week", value: $workoutGoal, in: 1...7)
             }
             continueButton()
         }
@@ -244,7 +244,7 @@ struct OnboardingView: View {
                     reviewRow("Focus", value: selectedFocus.map(\.rawValue).sorted().joined(separator: ", "))
                     reviewRow("Sleep", value: "\(sleepTarget.formattedOneDecimal) hours")
                     reviewRow("Water", value: formatter.formatWater(waterGoal))
-                    reviewRow("Movement", value: "\(stepsGoal.formatted()) steps · \(workoutGoal) workouts")
+                    reviewRow("Movement", value: "\(stepsGoal.formatted()) steps · \(workoutGoal) training sessions")
                     reviewRow("Appearance", value: appearance.displayName)
                 }
             }

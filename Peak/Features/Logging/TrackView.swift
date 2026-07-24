@@ -47,6 +47,8 @@ struct TrackView: View {
     @State private var showCreateHabit = false
     @State private var showLogFood = false
     @State private var showLogWorkout = false
+    @State private var editingFood: FoodLog?
+    @State private var editingWorkout: WorkoutLog?
 
     private var displayFormatter: UnitFormatter { UnitFormatter(system: viewModel.unitSystem) }
     @State private var showLogWater = false
@@ -96,6 +98,14 @@ struct TrackView: View {
             .sheet(isPresented: $showCreateHabit) { CreateHabitSheet().onDisappear { viewModel.load(modelContext: modelContext, date: selectedDate) } }
             .sheet(isPresented: $showLogFood) { LogFoodSheet(date: selectedDate).onDisappear { viewModel.load(modelContext: modelContext, date: selectedDate) } }
             .sheet(isPresented: $showLogWorkout) { LogWorkoutSheet(date: selectedDate).onDisappear { viewModel.load(modelContext: modelContext, date: selectedDate) } }
+            .sheet(item: $editingFood) { food in
+                LogFoodSheet(date: food.date, editingLog: food)
+                    .onDisappear { viewModel.load(modelContext: modelContext, date: selectedDate) }
+            }
+            .sheet(item: $editingWorkout) { workout in
+                LogWorkoutSheet(date: workout.date, workout: workout)
+                    .onDisappear { viewModel.load(modelContext: modelContext, date: selectedDate) }
+            }
             .sheet(isPresented: $showLogWater) { LogWaterSheet(date: selectedDate).onDisappear { viewModel.load(modelContext: modelContext, date: selectedDate) } }
             .fullScreenCover(isPresented: $showActiveWorkout) {
                 ActiveWorkoutView().onDisappear { viewModel.load(modelContext: modelContext, date: selectedDate) }
@@ -117,9 +127,9 @@ struct TrackView: View {
                 Button { showLogWater = true } label: { Label("Log Water", systemImage: "drop.fill") }
                 Button { showLogFood = true } label: { Label("Log Food", systemImage: "fork.knife") }
                 if selectedDate.isToday {
-                    Button { showActiveWorkout = true } label: { Label("Track Workout (GPS)", systemImage: "location.fill") }
+                    Button { showActiveWorkout = true } label: { Label("Track Training (GPS)", systemImage: "location.fill") }
                 }
-                Button { showLogWorkout = true } label: { Label("Log Workout", systemImage: "figure.run") }
+                Button { showLogWorkout = true } label: { Label("Log Training", systemImage: "figure.run") }
                 Button { showMoodSheet = true } label: { Label("Log Mood", systemImage: "face.smiling") }
                 Button { showCreateHabit = true } label: { Label("Create Habit", systemImage: "plus.circle") }
             } label: {
@@ -140,7 +150,7 @@ struct TrackView: View {
                 HStack(spacing: PeakTheme.Spacing.md) {
                     miniStat(icon: "drop.fill", value: displayFormatter.formatWaterShort(viewModel.hydrationML), unit: displayFormatter.waterUnitLabel, color: PeakTheme.teal)
                     miniStat(icon: "flame.fill", value: "\(viewModel.todayCalories)", unit: "kcal", color: PeakTheme.coral)
-                    miniStat(icon: "figure.run", value: "\(viewModel.todayWorkouts.count)", unit: "wo", color: PeakTheme.lavender)
+                    miniStat(icon: "figure.run", value: "\(viewModel.todayWorkouts.count)", unit: "sessions", color: PeakTheme.lavender)
                     miniStat(icon: "checkmark.circle", value: "\(viewModel.habitsCompletedCount)/\(viewModel.habits.count)", unit: "", color: PeakTheme.mint)
                 }
             }
@@ -403,6 +413,9 @@ struct TrackView: View {
                     .padding(PeakTheme.Spacing.md)
                     .glassCard(cornerRadius: PeakTheme.Radius.md, tint: Color(hex: food.meal.color).opacity(0.035))
                     .contextMenu {
+                        Button { editingFood = food } label: {
+                            Label("Edit Meal", systemImage: "pencil")
+                        }
                         Button(role: .destructive) {
                             viewModel.deleteFood(food, modelContext: modelContext)
                         } label: {
@@ -435,7 +448,7 @@ struct TrackView: View {
 
     private var workoutsSection: some View {
         VStack(spacing: PeakTheme.Spacing.md) {
-            SectionHeaderView(title: "Workouts", icon: "figure.run", actionTitle: selectedDate.isToday ? "Track" : "+ Log") {
+            SectionHeaderView(title: "Training", icon: "dumbbell.fill", actionTitle: selectedDate.isToday ? "Track" : "+ Log") {
                 if selectedDate.isToday { showActiveWorkout = true } else { showLogWorkout = true }
             }
 
@@ -462,9 +475,9 @@ struct TrackView: View {
             if viewModel.todayWorkouts.isEmpty {
                 EmptyStateView(
                     icon: "figure.run",
-                    title: selectedDate.isToday ? "No Workouts Today" : "No Workouts Logged",
-                    message: selectedDate.isToday ? "Log a workout or sync from Apple Health." : "Add a workout to complete this day's history.",
-                    actionTitle: "Log Workout"
+                    title: selectedDate.isToday ? "No Training Today" : "No Training Logged",
+                    message: selectedDate.isToday ? "Log a session or sync from Apple Health." : "Add a session to complete this day's history.",
+                    actionTitle: "Log Training"
                 ) { showLogWorkout = true }
             } else {
                 ForEach(viewModel.todayWorkouts, id: \.id) { workout in
@@ -484,10 +497,13 @@ struct TrackView: View {
                     .padding(PeakTheme.Spacing.md)
                     .glassCard(cornerRadius: PeakTheme.Radius.md, tint: Color(hex: workout.type.color).opacity(0.035))
                     .contextMenu {
+                        Button { editingWorkout = workout } label: {
+                            Label("Edit Training", systemImage: "pencil")
+                        }
                         Button(role: .destructive) {
                             viewModel.deleteWorkout(workout, modelContext: modelContext)
                         } label: {
-                            Label("Delete Workout", systemImage: "trash")
+                            Label("Delete Training", systemImage: "trash")
                         }
                     }
                 }
